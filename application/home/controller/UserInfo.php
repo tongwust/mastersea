@@ -35,7 +35,7 @@ class UserInfo extends Controller
     		'pinfo' => [],
     	];
     	$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);
@@ -90,7 +90,7 @@ class UserInfo extends Controller
     		'uinfo' => [],
     	];
     	$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);
@@ -158,7 +158,7 @@ class UserInfo extends Controller
     		'uinfo' => [],
     	];
     	$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);
@@ -228,7 +228,7 @@ class UserInfo extends Controller
     		'pinfo' => [],
     	];
     	$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);
@@ -368,14 +368,14 @@ class UserInfo extends Controller
     		
     		$contact = $user_contact->get_user_contact_by_userid();
     		if( count($result) > 0 ){
-    			$ret['data'] = $result[0];
+    			$ret['data'] = (count($result[0]) > 0)?$result[0]:[];
     			$ret['data']['partners_num'] = array_sum($parr);
     			$ret['data']['by_atten_unum'] = count($by_atten_unum);
     			$ret['data']['my_atten_unum'] = count($my_atten_unum);
     			$follow_user_arr = array_column($my_atten_unum,'follow_user_id');
     			$ret['data']['is_atten'] = in_array( $me_id, $follow_user_arr)?1:0;
     			$ret['data']['by_atten_pnum'] = array_sum($byArr);
-    			$ret['data']['my_atten_pnum'] = $my_atten_pnum[0]['my_atten_pnum'];
+    			$ret['data']['my_atten_pnum'] = (count($my_atten_pnum) > 0)?$my_atten_pnum[0]['my_atten_pnum']:0;
     			$ret['data']['project_num'] = count($project_res);
     			$ret['position'] = $position;
     			$ret['skill'] = $skill;
@@ -485,7 +485,7 @@ class UserInfo extends Controller
 			return json_encode($ret);
 			exit;
 		}
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);

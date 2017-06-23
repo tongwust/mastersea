@@ -3,17 +3,23 @@ namespace app\home\controller;
 use think\Controller;
 
 class Encrypt extends Controller{
-	
+	protected $encrypt_str;
+	protected $encrypt_key;
 	const ENCRYPT_STR = '*^&$#@`#';
 	const ENCRYPT_KEY = 'mastersea';
 	
+	public function __construct($encrypt_str = self::ENCRYPT_STR, $encrypt_key = self::ENCRYPT_KEY){
+		
+		$this -> encrypt_str = $encrypt_str;
+		$this -> encrypt_key = $encrypt_key;
+	}
 	public function token_encrypt(){
 		$ret = [
 			'r' => 0,
 			'msg' => '',
 		];
-		$str = self::ENCRYPT_STR;
-		$key = self::ENCRYPT_KEY;
+		$str = $this -> encrypt_str;
+		$key = $this -> encrypt_key;
 		$key = md5( $key);
 	   	$k = md5( rand( 0, 100));//相当于动态密钥
 	   	$k = substr( $k, 0, 8);
@@ -27,7 +33,7 @@ class Encrypt extends Controller{
 	}
 	
 	public function token_decode( $str){
-		$key = self::ENCRYPT_KEY;
+		$key = $this -> encrypt_key;
 	   	$len = strlen( $str);
 	   	$key = md5( $key);
 	  	$str = base64_decode( $str);
@@ -36,7 +42,7 @@ class Encrypt extends Controller{
 	   	for( $i = 0; $i < strlen( $str); $i++){
 	    	$tmp .= substr( $str, $i, 1) ^ substr( $key, $i, 1);
 	   	}
-	   	return $tmp == self::ENCRYPT_STR;
+	   	return $tmp;
 	}
 	
 }

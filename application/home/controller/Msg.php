@@ -7,43 +7,69 @@ use think\Session;
 use think\Config;
 
 class Msg extends Controller{
-	
+	public function test(){
+//		$msg_content = input('msg_content');dump($msg_content);
+//		$param = convertUrlQuery($msg_content);
+//		dump($param);
+		
+//		dump(Encrypt::ENCRYPT_STR);
+		$a = base64_encode('project_id=2&charge_user_id=3&user_id=5');dump($a);
+		$a = base64_decode($a);dump($a);
+		$encrypt = new Encrypt($a);
+		$b = $encrypt -> token_encrypt($a);
+		$c = json_decode($b,true);
+		dump( $c);
+		$d = $encrypt -> token_decode( $c['token'] );
+		dump($d);
+		dump(convertUrlQuery($d));
+	}
 	public function send_single_msg(){
 		$ret = [
 			'r' => 0,
 			'msg' => '发送成功',
 		];
 		$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);
 			exit;
 		}
-		if( !session('userinfo') ){
-			$ret['r'] = -100;
-			$ret['msg'] = '未登录';
-			return json_encode($ret);
-			exit;
-		}
+//		if( !session('userinfo') ){
+//			$ret['r'] = -100;
+//			$ret['msg'] = '未登录';
+//			return json_encode($ret);
+//			exit;
+//		}
 		$send_user_id = session('userinfo')['user_id'];
 //		$send_user_id = input('send_user_id');
-//		$send_user_id = 3;//test
+		$send_user_id = 3;//test
 		$receive_user_id = input('receive_user_id');
 		$msg_content = trim( input('msg_content'));
+		$type = input('type')?input('type'):1;
 		if($send_user_id <= 0 || $receive_user_id <= 0 || empty($msg_content)){
 			$ret['r'] = -1;
 			$ret['msg'] = '参数不符';
 			return json_encode($ret);
 			exit;
 		}
+		if( $type == 2 ){
+			$msg_arr = convertUrlQuery( base64_decode($msg_content) );
+			if( !(isset($msg_arr['project_id']) && isset($msg_arr['charge_user_id']) && isset($msg_arr['user_id'])) ){
+				$ret['r'] = -1;
+				$ret['msg'] = 'msg_content参数格式不符';
+				return json_encode($ret);
+				exit;
+			}
+		}
 		$msg_text = model('MsgText');
 		$msg = model('Msg');
 		Db::startTrans();
 		try{
+			
 			$msg_text -> msg_content = $msg_content;
 			$msg_text -> msg_title = input('msg_title');
-			$msg_text -> type = input('type')?input('type'):1;
+			$msg_text -> type = $type;
 			$msg_text -> save();
 			
 			$msg -> msg_id = $msg_text->msg_id;
@@ -65,7 +91,7 @@ class Msg extends Controller{
 			'msg' => '发送成功',
 		];
 		$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);
@@ -90,6 +116,7 @@ class Msg extends Controller{
 		foreach( $msgs as $k => &$v){
 			$v['send_user_id'] = $send_user_id;
 			if( $v['type'] == 2){
+				
 				
 			}
 			
@@ -127,7 +154,7 @@ class Msg extends Controller{
 			'mlist'	=> [],
 		];
 		$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);
@@ -156,7 +183,7 @@ class Msg extends Controller{
 			'mlist'	=> [],
 		];
 		$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);
@@ -184,7 +211,7 @@ class Msg extends Controller{
 			'msg' => '删除成功',
 		];
 		$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);
@@ -230,7 +257,7 @@ class Msg extends Controller{
 			'msg' => '修改成功',
 		];
 		$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);
@@ -265,7 +292,7 @@ class Msg extends Controller{
 			'msg' => '查询成功',
 		];
 		$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);

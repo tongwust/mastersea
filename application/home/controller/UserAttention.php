@@ -74,7 +74,7 @@ class UserAttention extends Controller{
 		];
 		$user_id = input('user_id');
 		$encrypt = new Encrypt;
-		if( !$encrypt -> token_decode(input('token')) ){
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
 			$ret['r'] = -10;
 			$ret['msg'] = '接口验证失败';
 			return json_encode($ret);
