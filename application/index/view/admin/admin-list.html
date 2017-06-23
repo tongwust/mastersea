@@ -1,0 +1,315 @@
+﻿<!--_meta 作为公共模版分离出去-->
+{include file="../application/index/view/meta.html" /}
+<!--/meta 作为公共模版分离出去-->
+
+<title>管理员列表 - 管理员列表 - H-ui.admin v3.0</title>
+<meta name="keywords" content="H-ui.admin v3.0,H-ui网站后台模版,后台模版下载,后台管理系统模版,HTML后台模版下载">
+<meta name="description" content="H-ui.admin v3.0，是一款由国人开发的轻量级扁平化网站后台模板，完全免费开源的网站后台管理系统模版，适合中小型CMS后台系统。">
+</head>
+<body>
+<!--_header 作为公共模版分离出去-->
+{include file="../application/index/view/header.html" /}
+<!--/_header 作为公共模版分离出去-->
+
+<!--_menu 作为公共模版分离出去-->
+{include file="../application/index/view/menu.html" /}
+<!--/_menu 作为公共模版分离出去-->
+
+<section class="Hui-article-box">
+	<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页
+		<span class="c-gray en">&gt;</span>
+		管理员管理
+		<span class="c-gray en">&gt;</span>
+		管理员列表
+		<a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a>
+	</nav>
+	<div class="Hui-article">
+		<article class="cl pd-20">
+			<div class="text-c">
+				<input type="text" class="input-text" style="width:250px" placeholder="输入管理员名称" id="" name="">
+				<button type="submit" class="btn btn-success" id="" name=""><i class="Hui-iconfont">&#xe665;</i> 搜用户</button>
+			</div>
+			<div class="cl pd-5 bg-1 bk-gray mt-20">
+				<span class="l">
+				<a href="javascript:;" onclick="datadel()" class="btn btn-danger radius"><i class="Hui-iconfont">&#xe6e2;</i> 批量删除</a>
+				<a href="javascript:;" onclick="admin_add('添加管理员','<?php echo url('index/admin/admin_add') ?>','800','500')" class="btn btn-primary radius"><i class="Hui-iconfont">&#xe600;</i> 添加管理员</a>
+				</span>
+				<!--<span class="r">共有数据：<strong>54</strong> 条</span>-->
+			</div>
+			<table class="table table-border table-bordered table-bg" id="table_id">
+				<thead>
+					<tr>
+						<th scope="col" colspan="9">员工列表</th>
+					</tr>
+					<tr class="text-c">
+						<!--<th width="25"><input type="checkbox" name="" value=""></th>-->
+						<th width="40">ID</th>
+						<th width="50">登录名</th>
+						<th width="30">性别</th>
+						<th width="50">真实姓名</th>
+						<th width="50">状态</th>
+						<th width="50">等级</th>
+						<th width="100">出生日期</th>
+						<th width="100">创建时间</th>
+						<th width="50">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<!--
+					<tr class="text-c">
+						<td><input type="checkbox" value="2" name=""></td>
+						<td>2</td>
+						<td>zhangsan</td>
+						<td>13000000000</td>
+						<td>admin@mail.com</td>
+						<td>栏目编辑</td>
+						<td>2014-6-11 11:11:42</td>
+						<td class="td-status"><span class="label radius">已停用</span></td>
+						<td class="td-manage"><a style="text-decoration:none" onClick="admin_start(this,'10001')" href="javascript:;" title="启用"><i class="Hui-iconfont">&#xe615;</i></a>
+							<a title="编辑" href="javascript:;" onclick="admin_edit('管理员编辑','admin-add.html','2','800','500')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a>
+							<a title="删除" href="javascript:;" onclick="admin_del(this,'1')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a></td>
+					</tr>-->
+				</tbody>
+			</table>
+		</article>
+	</div>
+</section>
+
+<!--_footer 作为公共模版分离出去-->
+{include file="../application/index/view/footer.html" /}
+<!--/_footer /作为公共模版分离出去-->
+
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript" src="__STATIC__/lib/My97DatePicker/4.8/WdatePicker.js"></script>
+<script type="text/javascript" src="__STATIC__/lib/datatables/1.10.0/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="__STATIC__/lib/laypage/1.2/laypage.js"></script>
+<script type="text/javascript">
+/*
+	参数解释：
+	title	标题
+	url		请求的url
+	id		需要操作的数据id
+	w		弹出层宽度（缺省调默认值）
+	h		弹出层高度（缺省调默认值）
+*/
+/*管理员-增加*/
+function admin_add(title,url,w,h){
+	layer_show(title,url,w,h);
+}
+/*管理员-删除*/
+function admin_del(obj,id){
+	layer.confirm('确认要删除吗？',function(index){
+		//此处请求后台程序，下方是成功后的前台处理……
+		
+		$(obj).parents("tr").remove();
+		layer.msg('已删除!',{icon:1,time:1000});
+	});
+}
+/*管理员-编辑*/
+function admin_edit(title,url,id,w,h){
+	if(id > 0){
+		
+		console.log(id);
+		$.ajax({
+			type:"post",
+			url:"<?php echo url('index/admin/get_admin_by_id') ?>",
+			data:{"id":id},
+			async:false,
+			success:function(data){
+				console.log(data);
+				if(data && data.r == 0){
+					layer_show(title,url,w,h);
+//					(data.sex == 1)?$('#sex-1').attr('checked',true):$('#sex-2').attr('checked',true);
+//					$('#fullname').val(data.fullname);
+//					$('#birthday').val(data.birthday);
+//					(data.status == 1)?$('#status-1').attr('checked',true):$('#status-2').attr('checked',true);
+				}else{
+					alert(data.msg);
+				}
+			},
+			error:function(err){
+				console.log(err);
+			}
+		});
+	}else{
+		alert('编辑用户id不存在');
+	}
+}
+/*管理员-停用*/
+function admin_stop(obj,id){
+	layer.confirm('确认要停用吗？',function(index){
+		//此处请求后台程序，下方是成功后的前台处理……
+		
+		$(obj).parents("tr").find(".td-manage").prepend('<a onClick="admin_start(this,id)" href="javascript:;" title="启用" style="text-decoration:none"><i class="Hui-iconfont">&#xe615;</i></a>');
+		$(obj).parents("tr").find(".td-status").html('<span class="label label-default radius">已禁用</span>');
+		$(obj).remove();
+		layer.msg('已停用!',{icon: 5,time:1000});
+	});
+}
+
+/*管理员-启用*/
+function admin_start(obj,id){
+	layer.confirm('确认要启用吗？',function(index){
+		//此处请求后台程序，下方是成功后的前台处理……
+		
+		$(obj).parents("tr").find(".td-manage").prepend('<a onClick="admin_stop(this,id)" href="javascript:;" title="停用" style="text-decoration:none"><i class="Hui-iconfont">&#xe631;</i></a>');
+		$(obj).parents("tr").find(".td-status").html('<span class="label label-success radius">已启用</span>');
+		$(obj).remove();
+		layer.msg('已启用!', {icon: 6,time:1000});
+	});
+}
+function fnReloadAjax() {
+	$('#table_id').dataTable().fnReloadAjax();
+}
+/**
+ * 精确搜索
+ */
+function srh(type){
+//	console.log( type )
+	srh_type = type;
+	fnReloadAjax();
+}
+/*
+ * 获取i行的data obj
+ */
+function getTableData(i) {
+	table = $('#table_id').dataTable();
+	var nTrs = table.fnGetNodes(); //fnGetNodes获取表格所有行，nTrs[i]表示第i行tr
+	console.log("row:" + i);
+	if (i < nTrs.length) {
+		var data = table.fnGetData(nTrs[i]);
+//		console.log(t);
+		return data; //获取一行第3列数据\n
+	}
+}
+var options_page = {
+//	stateSave: true, 
+	paging: true, //允许分页显示
+	bPaginate: true, //显示分页器
+	bDestroy: true,
+	//				iDisplayLength: 2, //一页显示条数
+	searching: false, //启用搜素
+	ordering: false, //禁用排序
+	autoWidth: true, //宽度自适应，默认
+//	info: true, //是否显示左下角的信息
+	processing: true, //载入数据的时候是否显示“载入中”
+	pageLength: 10, //首次加载的数据条数
+	//				language: {
+	//					"info": "共_条信息"
+	//				},
+	bLengthChange: true, //改变每页显示现实数据数量
+	bInfo: true, //页脚信息
+	sPaginationType: "full_numbers", //修改翻页样式，重要 full_numbers
+	language: {
+		processing: false, //载入数据的时候是否显示“载入中”
+		paginate: {
+			first: "<a href=\"#\" title=\"第一页\" class=\"page_first\" data-action=\"first\"></a>",
+			previous: "<a href=\"#\" title=\"上一页\" class=\"page_prve\" data-action=\"previous\"></a>",
+			next: "<a href=\"#\" title=\"下一页\" class=\"page_next\" data-action=\"next\"></a>",
+			last: "<a href=\"#\" title=\"最后一页\" class=\"page_last\" data-action=\"last\"></a>",
+		},
+		zeroRecords: "没有内容", //table tbody内容为空时，tbody的内容。
+		//下面三者构成了总体的左下角的内容。
+		//		info: '第_PAGE_ 页/共 _PAGES_页', 
+		//		info: "总共_PAGES_页，显示第_START_ 到第 _END_ ，筛选之后得到 _TOTAL_ 条，初始_MAX_ 条 ", //左下角的信息显示，大写的词为关键字。
+		//		infoEmpty: "0条记录", //筛选为空时左下角的显示。
+		infoFiltered: "", //筛选之后的左下角筛选提示(另一个是分页信息显示，在上面的info中已经设置，所以可以不显示)，
+		lengthMenu: '<div class="padding_top_bottom">每页显示 <select style="width:50px;">'+
+		      '<option value="10">10</option>'+
+		      '<option value="20">20</option>'+
+		      '<option value="50">50</option>'+
+		      '<option value="100">100</option>'+
+	      '</select> 条</div>',
+	},
+	//		sDom: '<"top"i>rt<"bottom"flp><"clear">',
+	//		bStateSave: true, //保存当前页面信息为cookie
+	bProcessing: false, // 是否显示取数据时的那个等待提示
+	bServerSide: true, //这个用来指明是通过服务端来取数据
+	sAjaxSource: "<?php echo url('index/admin/get_admin_list') ?>", //这个是请求的地址
+	fnServerData: retrieveData, // 获取数据的处理函数
+	aoColumns:
+	[
+	{ "mDataProp": "id"},
+	{ "mDataProp": "username"},
+	{ "mDataProp": "sex"},
+	{ "mDataProp": "fullname"},
+	{ "mDataProp": "status"},
+	{ "mDataProp": "level"},
+	{ "mDataProp": "birthday"},
+	{ "mDataProp": "create_time"},
+	{ "mDataProp": "id"},
+	]
+	,
+	infoCallback: function(settings, start, end, max, total, pre) {
+		return "共有" + "<span class = 'red'>" + total + "</span>" + "条记录";
+	},
+	"columnDefs": [{
+		className: "dt-center",
+		targets: "_all",
+		},
+		{
+	      "targets": 2,
+	      "data": "sex",
+	      "render": function(data, type, full, meta ) {
+	      		return '<a href="javascript:void(0)" data-id="' +'">'+ ((data==1)?'男':'女') +'</a>';
+	      }
+	   },
+	   {
+	      "targets": 4,
+	      "data": "status",
+	      "render": function(data, type, full, meta ) {
+	      		return '<a href="javascript:void(0)" data-id="' +'">'+ ((data==1)?'启用':'禁用') +'</a>';
+	      }
+	   },
+	   {
+	      "targets": 8,
+	      "data": "status",
+	      "render": function(data, type, full, meta ) {
+//	      		console.log('<a href="javascript:void(0)" onclick="admin_edit(' + "'编辑后台用户','<?php echo url('index/admin/admin_edit') ?>','" + data + "','800','500')" + '>编辑</a>')
+	      		return '<a href="javascript:void(0)" onclick="admin_edit(' + "'编辑后台用户','<?php echo url('index/admin/admin_edit') ?>','" + data + "','800','500')" + '">编辑</a>';
+//	      		return '<a href="'+"<?php echo url('index/admin/admin_edit') ?>" + '" >编辑</a>';
+	      }
+	   },
+	    ],
+        "fnDrawCallback": function(){
+        }
+
+}
+
+// 3个参数的名字可以随便命名,但必须是3个参数,少一个都不行
+function retrieveData(src, aoData, fnCallback1) {
+	var srh_type = 0;
+	if(srh_type == 0 || srh_type == 1){
+		// 工单列表 srh_type : 精准搜索 0 模糊搜索 1
+		$.ajax({
+			url: "<?php echo url('index/admin/get_admin_list') ?>", //这个就是请求地址对应sAjaxSource
+			data: {
+				"aoData": JSON.stringify(aoData),
+				"username": '',
+			}, //这个是把datatable的一些基本数据传给后台,比如起始位置,每页显示的行数
+			type: 'post',
+			dataType: 'json',
+			async: false,
+			success: function(obj) {
+//				console.log(obj);
+				if(obj && obj.r == 0){
+					fnCallback1(obj.result); //把返回的数据传给这个方法就可以了,datatable会自动绑定数据的
+				}else{
+					alert("错误("+ obj.r + ") " + obj.msg);
+				}
+			},
+			error: function(msg) {
+				console.log(msg);
+				alert(msg)
+			}
+		});
+	}
+}
+
+$(document).ready(function() {
+	$('#table_id').DataTable(options_page);
+});
+</script>
+<!--/请在上方写此页面业务相关的脚本-->
+</body>
+</html>
