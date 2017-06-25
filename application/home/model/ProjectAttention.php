@@ -65,7 +65,7 @@ class ProjectAttention extends Model{
 		$res = Db::query( $sql, ['project_id' => $project_id]);
 		return $res;
 	}
-	public function myAttenProjectTasklist( $from, $page_size){
+	public function myAttenProjectTasklist($user_id, $from, $page_size){
 		$sql = 'SELECT pa.project_id,t.task_id,t.title,t.description,t.praise_num,t.collect_num,t.create_time,
 					   s.src_id,s.src_name,s.src_order,s.type src_type,s.path,s.access_url,s.resource_path
 				FROM project_attention AS pa LEFT JOIN project AS p ON pa.project_id = p.project_id && p.status != -1
@@ -75,13 +75,13 @@ class ProjectAttention extends Model{
 					LEFT JOIN src AS s ON sr.src_id = s.src_id
 				WHERE pa.user_id = :user_id
 						LIMIT :from,:page_size';
-		$res = Db::query( $sql, ['user_id' => input('user_id'),'from'=>$from,'page_size'=>$page_size]);
+		$res = Db::query( $sql, ['user_id' => $user_id,'from'=>$from,'page_size'=>$page_size]);
 		
 		return $res;
 	}
 	public function getMyAttenProjectList($user_id){
-		$from = empty(input('from'))?input('from'):0;
-		$page_size = empty(input('page_size'))?input('page_size'):10;
+		$from = (input('from'))?input('from'):0;
+		$page_size = (input('page_size'))?input('page_size'):10;
 		
 		$sql = 'SELECT pa.project_id,p.name project_name,p.intro,p.project_start_time,p.project_end_time,p.praise_num,
 					   s.src_id project_src_id,s.access_url project_access_url
@@ -89,7 +89,7 @@ class ProjectAttention extends Model{
 											 LEFT JOIN src_relation AS sr ON sr.relation_id = p.project_id && sr.type = 1
 											 LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 3
 				WHERE pa.user_id = :user_id && pa.relation_type = 1
-					ORDER BY pa.create_time DESC';
+					ORDER BY pa.create_time DESC LIMIT '.$from.','.$page_size;
 		$res = Db::query( $sql, ['user_id' => $user_id ]);
 		
 		return $res;

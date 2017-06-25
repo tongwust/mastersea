@@ -13,7 +13,12 @@ class Msg extends Controller{
 //		dump($param);
 		
 //		dump(Encrypt::ENCRYPT_STR);
-		$a = base64_encode('project_id=2&charge_user_id=3&user_id=5');dump($a);
+		$arr = [
+			0 => ['send_user_id'=>3,'receive_user_id'=>6,'msg_title'=>'','type'=>2,'msg_content'=>'cHJvamVjdF9pZD0yJmNoYXJnZV91c2VyX2lkPTMmdXNlcl9pZD01JnRhZ19pZD0wJnVzZXJfdHlwZT0z'],
+			1 => ['send_user_id'=>3,'receive_user_id'=>8,'msg_title'=>'','type'=>2,'msg_content'=>'cHJvamVjdF9pZD0yJmNoYXJnZV91c2VyX2lkPTMmdXNlcl9pZD04JnRhZ19pZD0wJnVzZXJfdHlwZT0z'],
+		];
+		return json_encode($arr);
+		$a = base64_encode('project_id=2&charge_user_id=3&user_id=8&tag_id=0&user_type=3');dump($a);
 		$a = base64_decode($a);dump($a);
 		$encrypt = new Encrypt($a);
 		$b = $encrypt -> token_encrypt($a);
@@ -22,6 +27,7 @@ class Msg extends Controller{
 		$d = $encrypt -> token_decode( $c['token'] );
 		dump($d);
 		dump(convertUrlQuery($d));
+		
 	}
 	public function send_single_msg(){
 		$ret = [
@@ -66,7 +72,6 @@ class Msg extends Controller{
 		$msg = model('Msg');
 		Db::startTrans();
 		try{
-			
 			$msg_text -> msg_content = $msg_content;
 			$msg_text -> msg_title = input('msg_title');
 			$msg_text -> type = $type;
@@ -85,6 +90,7 @@ class Msg extends Controller{
 		}
 		return json_encode($ret);
 	}
+	
 	public function send_multi_msgs(){
 		$ret = [
 			'r' => 0,
@@ -97,15 +103,15 @@ class Msg extends Controller{
 			return json_encode($ret);
 			exit;
 		}
-		if( !session('userinfo') ){
-			$ret['r'] = -100;
-			$ret['msg'] = '未登录';
-			return json_encode($ret);
-			exit;
-		}
+//		if( !session('userinfo') ){
+//			$ret['r'] = -100;
+//			$ret['msg'] = '未登录';
+//			return json_encode($ret);
+//			exit;
+//		}
 		$send_user_id = session('userinfo')['user_id'];
 //		$send_user_id = input('send_user_id');
-//		$send_user_id = 3;//test
+		$send_user_id = 3;//test
 		$msgs = json_decode(input('msgs'),true);
 		if($send_user_id <= 0 || count($msgs) <= 0 ){
 			$ret['r'] = -1;
@@ -113,38 +119,51 @@ class Msg extends Controller{
 			return json_encode($ret);
 			exit;
 		}
+		$text_arr = [];
 		foreach( $msgs as $k => &$v){
 			$v['send_user_id'] = $send_user_id;
 			if( $v['type'] == 2){
-				
-				
+				$msg_arr = convertUrlQuery( base64_decode($v['msg_content']) );
+				if( !(isset($msg_arr['project_id']) && isset($msg_arr['charge_user_id']) && isset($msg_arr['user_id'])) ){
+					$ret['r'] = -1;
+					$ret['msg'] = 'msg_content参数格式不符';
+					return json_encode($ret);
+					exit;
+				}
 			}
-			
-			
+			array_push( $text_arr, ['msg_title'=>$v['msg_title'],'msg_content'=>$v['msg_content'],'type'=>$v['type']] );
 		}
-		dump($msgs);
-		exit;
 		$msg_text = model('MsgText');
 		$msg = model('Msg');
 		Db::startTrans();
 		try{
-			$msg_text -> msg_content = $msg_content;
-			$msg_text -> msg_title = input('msg_title');
-			$msg_text -> type = input('type')?input('type'):1;
-			$msg_text -> save();
-			
-			$msg -> msg_id = $msg_text->msg_id;
-			$msg -> send_user_id = $send_user_id;
-			$msg -> receive_user_id = $receive_user_id;
-			$msg -> save();
-			$ret['msg_id'] = $msg_text->msg_id;
+//			$msg_text -> msg_content = $msg_content;
+//			$msg_text -> msg_title = input('msg_title');
+//			$msg_text -> type = input('type')?input('type'):1;
+			$msg_ids = $msg_text -> saveAll( $text_arr);
+//			dump($msg_ids[0]->msg_id);
+			$msg_list = [];
+			$i = 0;
+			foreach( $msgs as $val){
+				array_push( $msg_list, ['msg_id'=>$msg_ids[$i++]->msg_id,'send_user_id'=>$val['send_user_id'],'receive_user_id'=>$val['receive_user_id']]);
+//				$msg_list['msg_id'] = $msg_text -> msg_id[$i++];
+//				$msg_list['send_user_id'] = $val['send_user_id'];
+//				$msg_list['receive_user_id'] = $val['receive_user_id'];
+			}
+//			dump($msg_list);
+			$msg -> saveAll( $msg_list);
+			$ret['msg_ids'] = array_column( $msg_list,'msg_id');
+//			$msg -> msg_id = $msg_text->msg_id;
+//			$msg -> send_user_id = $send_user_id;
+//			$msg -> receive_user_id = $receive_user_id;
+//			$msg -> save();
+//			$ret['msg_id'] = $msg_text->msg_id;
 			Db::commit();
 		}catch(\Exception $e){
 			Db::rollback();
 			$ret['r'] = -2;
 			$ret['msg'] = '数据库操作出错'.$e;
 		}
-		
 		return json_encode($ret);
 	}
 	public function get_my_send_msgs(){

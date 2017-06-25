@@ -246,7 +246,46 @@ class Project extends Controller{
 		}
 		return json_encode( $ret );
 	}
-	
+	public function add_member_to_project(){
+		$ret = [
+			'r' => 0,
+			'msg' => '添加成功',
+		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode($ret);
+			exit;
+		}
+		$user_id = session('userinfo')['user_id'];//$user_id=5;
+		$sig_arr = convertUrlQuery(base64_decode( input('sig') ));
+		if( !(isset($sig_arr['project_id']) && $sig_arr['project_id'] > 0 && isset($sig_arr['charge_user_id']) && $sig_arr['charge_user_id'] > 0 && isset($sig_arr['user_id']) && $sig_arr['user_id'] > 0 && $user_id == $sig_arr['user_id'] ) ){
+			$ret['r'] = -1;
+			$ret['msg'] = 'sig参数格式不符';
+			return json_encode($ret);
+			exit;
+		}
+		$user_project_tag = model('UserProjectTag');dump($sig_arr);
+		$res = $user_project_tag -> getMemberTag( $sig_arr['project_id'], $sig_arr['user_id']);
+		if(count($res) > 0){
+			$ret['r'] = -2;
+			$ret['msg'] = '用户已是项目中的成员';
+		}else{
+			$user_project_tag -> user_id = $sig_arr['user_id'];
+			$user_project_tag -> project_id = $sig_arr['project_id'];
+			$user_project_tag -> user_type	= $sig_arr['user_type'];
+			$user_project_tag -> tag_id = $sig_arr['tag_id'];
+			$user_project_tag -> save();
+		}
+		return json_encode($ret);
+	}
 	//yunsou添加项目内容 all
 	public function add_project_search_keys(){
 		header("Access-Control-Allow-Origin:*");
@@ -408,26 +447,29 @@ class Project extends Controller{
 		$user_project_tag = model('UserProjectTag');
 		$src_relation = model('SrcRelation');
 		$project_tag = model('ProjectTag');
-		$project_atten = model('ProjectAttention');
+//		$project_atten = model('ProjectAttention');
+		$collect = model('Collect');
 		$praise = model('Praise');
 		
 		$projectInfo = $project->get_project_by_id();
 		$tags = $user_project_tag->get_tag_by_userid_projectid();
 		$srcs = $src_relation->getSrcinfo( $project_id, 1, 3);
 		$address = $project_tag->get_tag_by_project_id();
-		$atten_num = $project_atten -> getProjectAttenNumByProjectId();
+//		$atten_num = $project_atten -> getProjectAttenNumByProjectId();
+		$collect_num = $collect -> getProjectAttenNum( $project_id, $user_id, 1);
 		
 		$ret['project'] = (count($projectInfo) > 0)?array_merge( $ret['project'], $projectInfo[0]):[];
 		$ret['project']['tags'] = (count($tags)> 0)?$tags:[];
 		$ret['project']['srcs'] = (count($srcs)> 0)?$srcs[0]:[];
 		$ret['project']['address'] = (count($address) > 0)?$address[0]:[];
-		$ret['project']['atten_num'] = (count($atten_num) > 0)?count($atten_num):0;
+//		$ret['project']['atten_num'] = (count($atten_num) > 0)?count($atten_num):0;
 		if( $user_id > 0){
 //			$is_atten_res = $project_atten -> check_project_atten_me($project_id, $user_id, 1);
-			$user_ids = array_column($atten_num,'user_id');
-			$ret['project']['login']['is_atten'] = in_array( $user_id, $user_ids)?1:0;
-			$is_praise_res = $praise -> check_praise_me($project_id, $user_id, 1);
-			$ret['project']['login']['is_praise'] = ($is_praise_res[0]['num'] > 0)?1:0;
+//			$user_ids = array_column($atten_num,'user_id');
+			$is_collect_res = $collect -> getCollectId( $project_id, $user_id, 1);
+			$ret['project']['login']['is_collect'] = (count($is_collect_res) > 0 && $is_collect_res[0]['collect_id'] > 0)?1:0;
+			$is_praise_res = $praise -> getPraiseId($project_id, $user_id, 1);
+			$ret['project']['login']['is_praise'] = (count($is_praise_res) > 0 && $is_praise_res[0]['praise_id'] > 0)?1:0;
 		}
 		return json_encode( $ret );
 	}

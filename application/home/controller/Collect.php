@@ -9,6 +9,65 @@ use think\Request;
 
 class Collect extends Controller{
 	
+	public function my_collect_project_task_list(){
+		$ret = [
+			'r' => 0,
+			'msg' => '查询成功',	
+			'tasks' => [],
+		];
+//		$user_id = input('user_id');
+		$from = empty(input('from'))?0:input('from');
+		$page_size = empty(input('page_size'))?10:input('page_size');
+		
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
+		
+//		$project_attention = model('ProjectAttention');
+		$comment = model('Comment');
+		$praise = model('Praise');
+		$collect = model('Collect');
+		
+//		$res = $project_attention -> myAttenProjectTasklist( $user_id, $from, $page_size);
+		$res = $collect -> myCollectProjectTaskList( $user_id, $from, $page_size);
+//		dump($res);
+		if( count($res) > 0){
+			$taskids_arr = array_column($res, 'task_id');//dump($taskids_arr);
+			$comment_arr = $comment->get_task_comment_by_task_ids(implode(',', $taskids_arr), 2);
+			if( $user_id > 0){//login
+				$task_praise_res = $praise -> get_user_praise( $user_id, implode(',', $taskids_arr), 2);//dump($task_praise_res);
+				$task_collect_res = $collect -> get_user_collect( $user_id, implode(',', $taskids_arr), 2);//dump($task_collect_res);
+				$task_praise = [];
+				foreach($task_praise_res as $r){
+					$task_praise[$r['cid']] = $r['praise_id'];
+				}
+				$task_collect = [];
+				foreach($task_collect_res as $r){
+					$task_collect[$r['cid']] = $r['collect_id'];
+				}
+			}
+//			dump($comment_arr);
+			foreach($res as &$t){
+				$t['comment'] = [];
+				foreach($comment_arr as $c){
+					if($t['task_id'] == $c['cid']){
+						array_push($t['comment'], $c);
+					}
+				}
+				$t['login']['is_praise'] = isset($task_praise[$t['task_id']])?1:0;
+				$t['login']['is_collect'] = isset($task_collect[$t['task_id']])?1:0;
+			}
+			$ret['tasks'] = $res;
+		}
+//		dump($ret);
+		return json_encode( $ret );
+	}
+	
 	public function add_collect(){
 		$ret = [
 			'r' => 0,

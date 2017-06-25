@@ -83,6 +83,60 @@ class UserInfo extends Controller
 //  	dump($ret);
     	return json_encode($ret);
     }
+    public function get_my_collect_project_list(){
+    	$ret = [
+    		'r' => 0,
+    		'msg' => '查询成功',
+    		'pinfo' => [],
+    	];
+    	$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+    	if( !session('userinfo') ){
+    		$ret['r'] = -100;
+    		$ret['msg'] = '请登录';
+    		return json_encode($ret);
+    		exit;
+    	}
+    	$user_id = session('userinfo')['user_id'];
+//  	$user_id = 3;
+    	$collect = model('Collect');
+    	$user_project_tag = model('UserProjectTag');
+    	
+    	$res = $collect -> getMyCollectProjectList($user_id);dump($res);
+    	
+    	$project_ids_str = implode(',',array_unique(array_column($res,'project_id')));
+//  	dump($project_ids_str);
+//  	$atten_arr = $project_attention -> getProjectAttenNum($project_ids_str);
+    	$users_arr = ($project_ids_str == '')?[]:$user_project_tag -> get_user_info_by_project_ids($project_ids_str);
+//  	$atten = [];
+//  	foreach($atten_arr as $a){
+//  		$atten[$a['project_id']] = $a['atten_num'];
+//  	}
+    	$users = [];
+    	foreach($users_arr as $u){
+    		$users[$u['project_id']] = $u;
+    	}
+//  	dump($users);
+    	foreach($res as $k => &$v){
+//  		$v['atten_num'] = isset($atten[$v['project_id']])?$atten[$v['project_id']]:0;
+    		if( isset($users[$v['project_id']])){
+    			$v['user_id'] = $users[ $v['project_id'] ]['user_id'];
+    			$v['user_name'] = $users[ $v['project_id'] ]['username'];
+    			$v['user_src_id'] = $users[ $v['project_id'] ]['src_id'];
+    			$v['user_access_url'] = $users[ $v['project_id'] ]['access_url'];
+    		}else{
+    			unset( $res[$k] );
+    		}
+    	}
+    	$ret['pinfo'] = $res;
+//  	dump($ret);
+    	return json_encode($ret);
+    }
     public function get_my_atten_user_list(){
     	$ret = [
     		'r' => 0,
@@ -148,9 +202,51 @@ class UserInfo extends Controller
     	}
 //  	dump($res);
     	$ret['uinfo'] = $res;
-    	
     	return json_encode( $ret);
     }
+    public function get_my_project_list(){
+    	$ret = [
+    		'r' => 0,
+    		'msg' => '查询成功',
+    		'pinfo' => [],
+    	];
+    	$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+    	if( !session('userinfo') ){
+    		$ret['r'] = -100;
+    		$ret['msg'] = '请登录';
+    		return json_encode($ret);
+    		exit;
+    	}
+    	$user_id = session('userinfo')['user_id'];
+//  	$user_id = 3;
+    	$user_project_tag = model('UserProjectTag');
+    	$project_task_user = model('ProjectTaskUser');
+    	
+    	$res = $user_project_tag -> GetMyProjectFullList( $user_id );
+    	$project_ids_str = implode( ',', array_column( $res, 'project_id') );
+//  	dump($res);
+    	$tasks = ($project_ids_str == '')?[]:$project_task_user -> getPartTaskList( $project_ids_str);
+//  	dump($tasks);
+    	foreach( $res as &$v){
+    		$v['task'] = [];
+    		foreach( $tasks as $t){
+    			if( $v['project_id'] == $t['project_id']){
+    				unset( $t['project_id']);
+    				array_push( $v['task'], $t);
+    			}
+    		}
+    	}
+    	$ret['pinfo'] = $res;
+//  	dump($ret );
+    	return json_encode( $ret);
+    }
+    
     public function get_atten_me_user_list(){
     	$ret = [
     		'r' => 0,
@@ -253,7 +349,7 @@ class UserInfo extends Controller
     	$users = $project_attention -> getProjectAttenUsers($project_ids_str);
 //  	dump($users);
     	$user_ids_str = implode(',', array_unique(array_column($users,'user_id')) );
-    	$tags = $user_tag -> getTagsByUserIds($user_ids_str);
+    	$tags = ($user_ids_str == '')?[]:$user_tag -> getTagsByUserIds($user_ids_str);
 //  	dump($tags);
 		foreach($users as &$us){
 			$us['tags'] = [];
@@ -272,6 +368,64 @@ class UserInfo extends Controller
     			if($v['project_id'] == $u['project_id']){
     				array_push($v['users'],['user_id'=>$u['user_id'],'username'=>$u['username'],'curr_company'=>$u['curr_company'],'user_src_id'=>$u['user_src_id'],'user_access_url'=>$u['user_access_url'],'tags'=>$u['tags']]);
     				$v['patten_num'] = $v['patten_num'] + 1;
+    			}
+    		}
+    	}
+//  	dump($res);
+    	$ret['pinfo'] = $res;
+    	return json_encode($ret);
+    }
+    public function get_my_project_collect_user_list(){
+    	$ret = [
+    		'r' => 0,
+    		'msg' => '查询成功',
+    		'pinfo' => [],
+    	];
+    	$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+    	if( !session('userinfo') ){
+    		$ret['r'] = -100;
+    		$ret['msg'] = '请登录';
+    		return json_encode($ret);
+    		exit;
+    	}
+    	$user_id = session('userinfo')['user_id'];
+//  	$user_id = 3;
+    	$user_project_tag = model('UserProjectTag');
+    	$collect = model('Collect');
+    	$user_tag = model('UserTag');
+    	
+    	$res = $user_project_tag -> GetMyProjectList( $user_id );
+//  	dump($res);
+    	$project_ids_str = implode(',', array_column( $res, 'project_id'));
+    	
+    	$users = $collect -> getProjectCollectUsers($project_ids_str);
+//  	dump($users);
+    	$user_ids_str = implode(',', array_unique(array_column($users,'user_id')) );
+    	$tags = ($user_ids_str == '')?[]:$user_tag -> getTagsByUserIds($user_ids_str);
+//  	dump($tags);
+		foreach($users as &$us){
+			$us['tags'] = [];
+			foreach($tags as $t){
+				if($us['user_id'] == $t['user_id']){
+					if($t['tag_id'] > 0){
+						array_push($us['tags'],['tag_id' => $t['tag_id'],'tag_name'=>$t['tag_name']]);
+					}
+    			}
+			}
+		}
+    	foreach($res as &$v){
+//  		$v['pcoll_num'] = 0;
+    		$v['users'] = [];
+    		foreach($users as $u){
+    			if($v['project_id'] == $u['project_id']){
+    				array_push($v['users'],['user_id'=>$u['user_id'],'username'=>$u['username'],'curr_company'=>$u['curr_company'],'user_src_id'=>$u['user_src_id'],'user_access_url'=>$u['user_access_url'],'tags'=>$u['tags']]);
+//  				$v['pcoll_num'] = $v['pcoll_num'] + 1;
     			}
     		}
     	}

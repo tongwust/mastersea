@@ -8,8 +8,8 @@ class Praise extends Model{
 	protected $table = 'praise';
 	
 	
-	public function check_praise_me( $cid, $user_id, $type){
-		$sql = 'SELECT COUNT(praise_id) num
+	public function getPraiseId( $cid, $user_id, $type){
+		$sql = 'SELECT praise_id
 				FROM praise
 				WHERE cid = :cid && user_id = :user_id && type = :type
 					LIMIT 1';

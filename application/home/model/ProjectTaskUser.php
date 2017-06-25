@@ -6,10 +6,22 @@ use think\Db;
 class ProjectTaskUser extends Model{
 	
 	protected $table = 'project_task_user';
-	
+	public function getPartTaskList( $project_ids_str){
+		$from  = (input('from'))?input('from'):0;
+		$page_size = (input('page_size'))?input('page_size'):10;
+		
+		$sql = 'SELECT ptu.project_id,ptu.task_id,t.title,s.src_id,s.access_url
+				FROM project_task_user AS ptu LEFT JOIN task AS t ON ptu.task_id = t.task_id
+											  LEFT JOIN src_relation AS sr ON t.task_id = sr.relation_id && sr.type = 2
+											  LEFT JOIN src AS s ON sr.src_id = s.src_id
+				WHERE ptu.project_id in ('.$project_ids_str.')';
+				
+		$res = Db::query($sql);
+		return $res;
+	}
 	public function get_task_src_comment_by_project_id(){
-		$from  = empty(input('from'))?0:input('from');
-		$page_size = empty( input('page_size'))?10:input('page_size');
+		$from  = (input('from'))?input('from'):0;
+		$page_size = ( input('page_size'))?input('page_size'):10;
 		$project_id = input('project_id');
 		
 		$sql = 'SELECT ptu.task_id,t.title,t.description,t.status,t.praise_num,t.create_time,t.task_order
@@ -23,7 +35,9 @@ class ProjectTaskUser extends Model{
 	
 	public function deleteByTaskid(){
 		
-		$sql = 'DELETE FROM project_task_user WHERE task_id = :task_id && project_id = :project_id';
+		$sql = 'DELETE 
+				FROM project_task_user 
+				WHERE task_id = :task_id && project_id = :project_id';
 		$res = Db::query( $sql, ['task_id' => input('task_id'),'project_id' => input('project_id') ]);
 		return $res;
 	}
