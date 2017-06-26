@@ -15,6 +15,13 @@ class Comment extends Controller{
 			'msg' => '评论成功',
 			'pc_id' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$pid = input('pid');
 		$cid = input('cid');
 		$type = input('type');
@@ -52,6 +59,13 @@ class Comment extends Controller{
 			'r' => 0,
 			'msg' => '删除成功',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$pc_id = input('pc_id');
 		if( !session('userinfo') ){
 			$ret['r'] = -100;

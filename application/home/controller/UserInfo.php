@@ -18,6 +18,13 @@ class UserInfo extends Controller
     		'msg' => '已登录',
     		'userinfo' =>'',
     	];
+    	$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
       	if( !session('userinfo') ){
     		$ret['r'] = 0;
     		$ret['msg'] = '未登录，请登录';
@@ -163,6 +170,12 @@ class UserInfo extends Controller
     	$user_tag = model('UserTag');
     	
     	$res = $user_attention -> getMyAttenUserList($user_id);
+    	$flist = $user_attention -> getMyFriends( $user_id );//dump($flist);
+    	$friend_arr = [];
+    	foreach($flist as $val){
+    		$friend_arr[$val['user_id']] = $val['user_id'];
+    	}
+//  	dump($friend_arr);
     	$user_ids_str = implode(',',array_column( $res, 'user_id'));
     	$project_num_arr = $user_project_tag -> getProjectNumByUserids($user_ids_str);
 
@@ -182,6 +195,7 @@ class UserInfo extends Controller
 
     	foreach($res as &$v){
     		$v['tags'] = [];
+    		$v['is_friend'] = isset($friend_arr[$v['user_id']])?1:0;
     		foreach($tags as $p){
     			if($v['user_id'] == $p['user_id']){
     				if($p['tag_id'] > 0){
@@ -189,8 +203,8 @@ class UserInfo extends Controller
     				}
     			}
     		}
-    		$v['project_num'] = isset($arr[$v['user_id']])?0:$arr[$v['user_id']];
-    		$v['atten_num'] = isset($atten_arr[$v['user_id']])?0:$atten_arr[$v['user_id']];
+    		$v['project_num'] = isset($arr[$v['user_id']])?$arr[$v['user_id']]:0;
+    		$v['atten_num'] = isset($atten_arr[$v['user_id']])?$atten_arr[$v['user_id']]:0;
     		foreach($project_src as $ps){
     			if( $v['user_id'] == $ps['user_id']){
     				$v['project_id'] = $ps['project_id'];
@@ -267,12 +281,17 @@ class UserInfo extends Controller
     		exit;
     	}
     	$user_id = session('userinfo')['user_id'];
-//  	$user_id = 3;
+//  	$user_id = 3;//test
     	$user_attention = model('UserAttention');
     	$user_project_tag = model('UserProjectTag');
     	$user_tag = model('UserTag');
     	
     	$res = $user_attention -> getAttenMeUserList($user_id);
+    	$flist = $user_attention -> getMyFriends( $user_id );//dump($flist);
+    	$friend_arr = [];
+    	foreach($flist as $val){
+    		$friend_arr[$val['user_id']] = $val['user_id'];
+    	}
 //  	dump($res);
     	$user_ids_str = implode(',',array_column( $res, 'user_id'));
     	$project_num_arr = $user_project_tag -> getProjectNumByUserids($user_ids_str);
@@ -295,6 +314,7 @@ class UserInfo extends Controller
 //  	dump($project_src);
     	foreach($res as &$v){
     		$v['tags'] = [];
+    		$v['is_friend'] = isset($friend_arr[$v['user_id']])?1:0;
     		foreach($tags as $p){
     			if($v['user_id'] == $p['user_id']){
     				if($p['tag_id'] > 0){
@@ -302,8 +322,8 @@ class UserInfo extends Controller
     				}
     			}
     		}
-    		$v['project_num'] = isset($arr[$v['user_id']])?0:$arr[$v['user_id']];
-    		$v['atten_num'] = isset($atten_arr[$v['user_id']])?0:$atten_arr[$v['user_id']];
+    		$v['project_num'] = isset($arr[$v['user_id']])?$arr[$v['user_id']]:0;
+    		$v['atten_num'] = isset($atten_arr[$v['user_id']])?$atten_arr[$v['user_id']]:0;
     		foreach($project_src as $ps){
     			if( $v['user_id'] == $ps['user_id']){
     				$v['project_id'] = $ps['project_id'];
@@ -439,6 +459,13 @@ class UserInfo extends Controller
     		'r' => 0,
     		'msg' => '查询成功',
     	];
+    	$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
     	$user_id = input('user_id');
     	if( $user_id > 0 ){
     		$user_info = model('UserInfo');
@@ -446,7 +473,7 @@ class UserInfo extends Controller
     		$user_project_tag = model('UserProjectTag');
     		$user_tag = model('UserTag');
     		
-    		$user_res = $user_info->get_user_detail_by_id();
+    		$user_res = $user_info->get_user_detail_by_id( $user_id);
     		if(count($user_res) > 0){
     			$ret = array_merge( $ret, $user_res[0]);
     			$atten_res = $user_attention->get_follow_users_by_id();
@@ -478,6 +505,13 @@ class UserInfo extends Controller
 			'contact' => [],
 			'language' => [],
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$user_id = input('user_id');
     	$user_info = model('UserInfo');
     	$user_tag = model('UserTag');
@@ -498,12 +532,12 @@ class UserInfo extends Controller
 //  	$user_id = session('userinfo')['user_id'];
 //  	$ret['msg'] = $user_info;
     	if( $user_id > 0 ){
-    		$position = $user_tag->get_tag_by_userid( 22, 10);
-    		$skill = $user_tag->get_tag_by_userid( 30, 11);
-    		$interest = $user_tag->get_tag_by_userid( 31, 12);
-    		$language = $user_tag->get_tag_by_userid( 32, 13);
+    		$position = $user_tag->get_tag_by_userid($user_id, 22, 10);
+    		$skill = $user_tag->get_tag_by_userid($user_id, 30, 11);
+    		$interest = $user_tag->get_tag_by_userid($user_id, 31, 12);
+    		$language = $user_tag->get_tag_by_userid($user_id, 32, 13);
     		
-    		$result = $user_info->get_user_detail_by_id();
+    		$result = $user_info->get_user_detail_by_id( $user_id);
     		$partners_num = $user_project_tag -> getPartnersNumByUserId();
     		$parr = [];
     		foreach( $partners_num as $v){
@@ -550,6 +584,21 @@ class UserInfo extends Controller
 			'r' => -1,
 			'msg' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
     	$user_id = input('user_id');
     	$sex = input('sex');
     	$birthday = input('birthday');

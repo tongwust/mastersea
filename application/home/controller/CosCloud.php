@@ -37,6 +37,13 @@ class CosCloud extends Controller{
 			'msg' => '',
 			'sig' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$random = intval( (mt_rand()/mt_getrandmax())*pow(2, 32) );
 		$now = time();
 		$e = $now + 60;
@@ -56,6 +63,13 @@ class CosCloud extends Controller{
 			'msg' => '',
 			'sig' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$random = intval( (mt_rand()/mt_getrandmax())*pow(2, 32) );
 		$now = time();
 		$e = 0;

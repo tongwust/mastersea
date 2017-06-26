@@ -189,7 +189,14 @@ class UserProjectTag extends Model{
 		
 		return $res;
 	}
-	
+	public function getPartInfoByProjectId( $project_id ){
+		
+		$sql = 'SELECT count(DISTINCT(user_id)) member_num
+				FROM user_project_tag
+				WHERE project_id = :project_id';
+		$res = Db::query( $sql ,['project_id' => $project_id]);
+		return $res;
+	}
 	public function getUserTags($project_ids_str){
 	
 		$sql = 'SELECT upt.project_id,upt.tag_id,ti.name

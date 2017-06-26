@@ -7,8 +7,8 @@ class UserInfo extends Model{
 	
 	protected $table = 'user_info';
 	
-	public function get_user_detail_by_id(){
-		$user_id = input('user_id');
+	public function get_user_detail_by_id( $user_id){
+//		$user_id = input('user_id');
 		
 		$sql = 'SELECT u.user_id,u.name,u.status,
 					   ui.sex,ui.birthday,ui.fullname,ui.en_name,ui.curr_company,ui.en_company,ui.short_name,ui.work_age,ui.education_school,

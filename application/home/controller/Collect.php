@@ -15,6 +15,13 @@ class Collect extends Controller{
 			'msg' => '查询成功',	
 			'tasks' => [],
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 //		$user_id = input('user_id');
 		$from = empty(input('from'))?0:input('from');
 		$page_size = empty(input('page_size'))?10:input('page_size');
@@ -74,6 +81,13 @@ class Collect extends Controller{
 			'msg' => '收藏成功',
 			'collect_id' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$cid = input('cid');//1 项目id,2 任务
 		$user_id = input('user_id');
 		$type = input('type');
@@ -119,6 +133,13 @@ class Collect extends Controller{
 			'r' => 0,
 			'msg' => '收藏成功',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$cid = input('cid');
 		$user_id = input('user_id');
 		$type = input('type');

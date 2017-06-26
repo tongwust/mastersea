@@ -122,6 +122,21 @@ class TcsQcloudApi extends Controller{
 			'r' => 0,
 			'msg' => '操作成功',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
 		$tag_id = input('tag_id');
 		$themeid = input('themeid');
 		if( !($tag_id > 0 && $themeid > 0) ){

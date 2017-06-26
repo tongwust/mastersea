@@ -57,6 +57,8 @@ function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null
     $mail->Subject = $subject;
 //  $mail->MsgHTML($body);
 	$mail->Body = $body;
+//	$mail->IsBodyHtml = true;
+	$mail->ContentType = 'text/html';
     $mail->AddAddress($tomail, $name);
     if (is_array($attachment)) { // 添加附件
         foreach ($attachment as $file) {

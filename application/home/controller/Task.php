@@ -14,6 +14,21 @@ class Task extends Controller{
 			'r' => 0,
 			'msg' => '修改成功',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
 		$task_id = input('task_id');
 		if( $task_id <= 0){
 			$ret['r'] = -1;
@@ -33,9 +48,24 @@ class Task extends Controller{
 			'r' => 0,
 			'msg' => '删除成功',
 		];
+		$opt_id = input('opt_id');
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$opt_id = session('userinfo')['user_id'];
+		}
 		$task_id = input('task_id');
 		$project_id = input('project_id');
-		$opt_id = input('opt_id');
 		if( $task_id <= 0 || $project_id <= 0 || $opt_id <= 0){
 			$ret['r'] = -1;
 			$ret['msg'] = '参数不符';

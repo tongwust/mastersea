@@ -15,6 +15,13 @@ class UserAttention extends Controller{
 			'msg' => '关注成功',
 			'user_attention_id' => ''
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$user_id = input('user_id');
 		$follow_user_id = input('follow_user_id');
 		if( !session('userinfo') ){
@@ -43,6 +50,13 @@ class UserAttention extends Controller{
 			'r' => 0,
 			'msg' => '取消关注',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$user_id = input('user_id');
 		$follow_user_id = input('follow_user_id');
 		$relation_type = input('relation_type');

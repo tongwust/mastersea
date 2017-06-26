@@ -17,6 +17,13 @@ class User extends Controller{
 			'project_list' => [],
 		];
 		$user_id = input('user_id');
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		if( $user_id <= 0){
 			$ret['r'] = -1;
 			$ret['msg'] = '参数不符';
@@ -76,11 +83,6 @@ class User extends Controller{
 		
 		return json_encode($ret);
 	}
-	
-	
-	
-	
-	
 	
 	//缓存关系链
 	public function get_appid_group_list(){

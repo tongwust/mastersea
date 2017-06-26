@@ -76,7 +76,15 @@ class UserAttention extends Model{
 		$res = Db::query( $sql);
 		return $res;
 	}
-	
+	public function getMyFriends( $follow_user_id){
+		$sql = 'SELECT a.user_id,u.name username
+				FROM user_attention a INNER JOIN user_attention b ON a.user_id = b.follow_user_id && b.user_id = a.follow_user_id
+									  LEFT JOIN user u ON a.user_id = u.user_id && u.status = 1
+				WHERE a.follow_user_id = :follow_user_id';
+		$res = Db::query( $sql, ['follow_user_id' => $follow_user_id]);
+		
+		return $res;
+	}
 	public function getMyFriendList( $follow_user_id ){
 		$sql = 'SELECT a.user_id,u.name,s.src_id,s.access_url
 				FROM user_attention a INNER JOIN user_attention b ON a.user_id = b.follow_user_id && b.user_id = a.follow_user_id

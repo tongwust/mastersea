@@ -19,6 +19,13 @@ class Project extends Controller{
 			'msg' => '查询成功',
 			'tasks' => [],
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$user_id = input('user_id');
 		$from = empty(input('from'))?0:input('from');
 		$page_size = empty(input('page_size'))?10:input('page_size');
@@ -81,6 +88,13 @@ class Project extends Controller{
 			'uinfo' => '',
 			'pinfo' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$project_id = input('project_id');
 		if( $project_id <= 0 ){
 			$ret['r'] = -1;
@@ -107,6 +121,21 @@ class Project extends Controller{
 			'msg' => '创建成功',
 			'src_id' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
 		$project_id = input('project_id');
 		$access_url = input('access_url');
 		if( $project_id <= 0 || $access_url == ''){
@@ -146,6 +175,21 @@ class Project extends Controller{
 			'r' => 0,
 			'msg' => '删除成功',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
 		$src_id = input('src_id');
 		$project_id = input('project_id');
 		if( $src_id <= 0 || $project_id <= 0){
@@ -165,6 +209,13 @@ class Project extends Controller{
 			"msg" => '查询成功',
 			'member_list' => [],
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$project_id = input('project_id');
 		if( $project_id > 0){
 			$user_project_tag = model('UserProjectTag');
@@ -190,6 +241,21 @@ class Project extends Controller{
 			'r' => 0,
 			'msg' => '修改成功',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
 		$project_id = input('project_id');
 		$status = input('status');
 		if( $project_id <= 0 || $status === ''){
@@ -209,6 +275,19 @@ class Project extends Controller{
 			'msg' => '删除成功',
 			'path_list'=>[],
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}
 		$opt_id = input('opt_id');
 		$user_id = input('user_id');
 		$project_id = input('project_id');
@@ -301,6 +380,7 @@ class Project extends Controller{
 	//向腾讯云添加 搜索记录
 	public function add_search_key_by_project_id($project_id){
 //		$project_id = input('project_id');
+		
 		$project_tcs = new TcsQcloudApi(58740002);
 		
 		$project_tcs->DataManipulationByProjectId( $project_id );
@@ -313,6 +393,13 @@ class Project extends Controller{
 			"msg" => '查询成功',
 			'project_list' => [],
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$user_id = input('user_id');
 		if( $user_id <= 0){
 			$ret['r'] = -1;
@@ -353,8 +440,15 @@ class Project extends Controller{
 			"msg" => '获取成功',
 			'data' => [],
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode( input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode( $ret);
+			exit;
+		}
 		$search_query = input('search_query');
-		if( empty($search_query)){
+		if( empty( $search_query)){
 			$ret['r'] = -1;
 			$ret['msg'] = '参数为空';
 			return json_encode($ret);
@@ -374,6 +468,13 @@ class Project extends Controller{
 			"msg" => '查询成功',
 			'project_list' => [],
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$user_id = input('user_id');
 		$search_query = input('search_query');
 		$project_ids_str = input('project_ids');
@@ -432,6 +533,13 @@ class Project extends Controller{
 			"msg" => '查询成功',
 			'project' => [],
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$project_id = input('project_id');
 		$user_id = input('user_id');
 		if( session('userinfo') != null ){
@@ -479,6 +587,21 @@ class Project extends Controller{
 			'r' => 0,
 			'msg' => '修改成功',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$opt_id = session('userinfo')['user_id'];
+		}
 		$project_id = input('project_id');
 		$opt_id = input('opt_id');
 		$reg_date = '/^d{4}-d{2}-d{2} d{2}:d{2}:d{2}$/s';
@@ -500,6 +623,13 @@ class Project extends Controller{
 			"msg" => '',
 			'data' => [],
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$project_id = input('project_id');
 		$user_id = input('user_id');
 		if(session('userinfo') != null){
@@ -578,8 +708,22 @@ class Project extends Controller{
 			'task_id' => '',
 			'src_id' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
 		$project_id = input('project_id');
-		$user_id = input('user_id');
 		if( $project_id <= 0 || $user_id <= 0){
 			$ret['r'] = -1;
 			$ret['msg'] = '参数不符合要求';
@@ -626,7 +770,21 @@ class Project extends Controller{
 			"r" => -1,
 			"msg" => ''
 		];
-		$user_id = input('user_id');
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
 		if( $user_id <= 0){
 			$ret['msg'] = '用户id 不能为空';
 			return json_encode($ret);
@@ -739,7 +897,6 @@ class Project extends Controller{
 		return json_encode($ret);
 	}
 	
-	//项目删除
 	
 	
 	public function upload(Request $request){

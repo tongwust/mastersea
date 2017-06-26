@@ -15,6 +15,13 @@ class ProjectAttention extends Controller{
 			'msg' => '查询成功',	
 			'tasks' => [],
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$user_id = input('user_id');
 		$from = empty(input('from'))?0:input('from');
 		$page_size = empty(input('page_size'))?10:input('page_size');
@@ -77,6 +84,13 @@ class ProjectAttention extends Controller{
 			'msg' => '添加成功',	
 			'project_attention_id' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$project_id = input('project_id');
 		$user_id = input('user_id');
 		if( !session('userinfo') ){
@@ -108,6 +122,13 @@ class ProjectAttention extends Controller{
 			'r' => 0,
 			'msg' => '取消成功',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$project_id = input('project_id');	
 		$user_id = input('user_id');
 		$relation_type = input('relation_type');

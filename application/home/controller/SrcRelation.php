@@ -17,6 +17,21 @@ class SrcRelation extends Controller{
 			'src_name' => '',
 		];
 		$user_id = input('user_id');
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
 		$resource_path = input('resource_path');
 		if( $user_id > 0 && $resource_path != ''){
 			$src = model('Src');
@@ -63,6 +78,21 @@ class SrcRelation extends Controller{
 			'msg' => '删除数据成功',
 		];
 		$user_id = input('user_id');
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
 		$src_id = input('src_id');
 		if( $src_id > 0 && $user_id > 0 ){
 			$src = model('Src');

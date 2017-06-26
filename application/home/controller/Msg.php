@@ -41,12 +41,12 @@ class Msg extends Controller{
 			return json_encode($ret);
 			exit;
 		}
-//		if( !session('userinfo') ){
-//			$ret['r'] = -100;
-//			$ret['msg'] = '未登录';
-//			return json_encode($ret);
-//			exit;
-//		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode($ret);
+			exit;
+		}
 		$send_user_id = session('userinfo')['user_id'];
 //		$send_user_id = input('send_user_id');
 		$send_user_id = 3;//test
@@ -103,12 +103,12 @@ class Msg extends Controller{
 			return json_encode($ret);
 			exit;
 		}
-//		if( !session('userinfo') ){
-//			$ret['r'] = -100;
-//			$ret['msg'] = '未登录';
-//			return json_encode($ret);
-//			exit;
-//		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode($ret);
+			exit;
+		}
 		$send_user_id = session('userinfo')['user_id'];
 //		$send_user_id = input('send_user_id');
 		$send_user_id = 3;//test

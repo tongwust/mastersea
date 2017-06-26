@@ -48,6 +48,13 @@ class Tag extends Controller{
 			'msg' => '',
 			'data' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$tag_id = input('tag_id');
 		$themeid = input('themeid');
 		if($tag_id > 0 && $themeid > 0){
@@ -67,6 +74,13 @@ class Tag extends Controller{
 			'msg' => '',
 			'data' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$tag_id = input('tag_id');
 		$themeid = input('themeid');
 		$part = trim(input('part'));
@@ -123,6 +137,13 @@ class Tag extends Controller{
 			'r' => 0,
 			'msg' => '添加成功',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$pid = input('pid');
 		$name = input('name');
 		$short_name = input('short_name');
@@ -145,6 +166,13 @@ class Tag extends Controller{
 			'r' => 0,
 			'msg' => '删除成功',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$pid = input('pid');
 		$themeid = input('themeid');
 		if($pid > 0){
@@ -165,6 +193,13 @@ class Tag extends Controller{
 			'r' => -1,
 			'msg' => '',
 		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
 		$pid = input('pid');
 		$tid = input('tid');
 		if( $pid > 0 && $tid > 0 ){

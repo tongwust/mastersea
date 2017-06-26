@@ -37,15 +37,18 @@ class UserTag extends Model{
 		
 	}
 	
-	public function get_tag_by_userid( $pid, $themeid){
-		$user_id = input('user_id');
+	public function get_tag_by_userid($user_id, $pid, $themeid){
+//		$user_id = input('user_id');
 		$sql = 'SELECT ti.tag_id,ti.name
-				FROM user_tag AS ut LEFT JOIN tag AS t ON ut.tag_id = t.tag_id LEFT JOIN tag_info AS ti ON t.tag_id = ti.tag_id
+				FROM user_tag AS ut LEFT JOIN tag AS t ON ut.tag_id = t.tag_id
+									LEFT JOIN tag_info AS ti ON t.tag_id = ti.tag_id
 				WHERE ut.user_id = :user_id && t.pid = :pid && t.themeid = :themeid';
 				
 		$res = Db::query($sql , ['user_id' => $user_id,'pid' => $pid, 'themeid' => $themeid]);
 		return $res;
 	}
+	
+	
 }
 
 
