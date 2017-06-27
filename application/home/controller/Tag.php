@@ -132,7 +132,7 @@ class Tag extends Controller{
 		}
 		
 	}
-	public function tag_add( $pid, $name, $short_name, $themeid){
+	public function tag_add( $pid, $name, $short_name, $themeid, $type){
 		$ret = [
 			'r' => 0,
 			'msg' => '添加成功',
@@ -148,8 +148,9 @@ class Tag extends Controller{
 		$name = input('name');
 		$short_name = input('short_name');
 		$themeid = empty(input('themeid'))?1:input('themeid');
+		$type = empty(input('type'))?1:input('type');
 		if( $pid > 0 ){
-			$res = Db::query('call addTag(:pid,:name,:short_name,:themeid)',['pid'=>$pid,'name'=>$name,'short_name'=>$short_name,'themeid'=>$themeid]);
+			$res = Db::query('call addTag(:pid,:name,:short_name,:themeid,:type)',['pid'=>$pid,'name'=>$name,'short_name'=>$short_name,'themeid'=>$themeid,'type'=>$type]);
 			if(!(count($res) > 0 && $res[0][0]['result'] == 1000)){
 				$ret['r'] = -2;
 				$ret['msg'] = '添加失败';

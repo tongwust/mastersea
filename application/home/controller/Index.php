@@ -320,16 +320,16 @@ class Index extends Controller
 			return json_encode($ret);
 			exit;
 		}
-//		if( !session('userinfo') ){
-//			$ret['r'] = -100;
-//			$ret['msg'] = '未登录';
-//			return json_encode($ret);
-//			exit;
-//		}else{
-//			$user_id = session('userinfo')['user_id'];
-//			$username = session('userinfo')['name'];
-//		}
-		$user_id = 3;//text
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode($ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+			$username = session('userinfo')['name'];
+		}
+//		$user_id = 3;//text
 		$project_id = input('project_id');
 		$to_email = input('to_email');
 		$pattern_email="/([a-z0-9]*[-_.]?[a-z0-9]+)*@([a-z0-9]*[-_]?[a-z0-9]+)+[.][a-z]{2,3}([.][a-z]{2})?/i";
@@ -473,7 +473,7 @@ class Index extends Controller
 							<p class="projectMsg">项目组目前已经有<span class="userName">'.(isset($member_num[0]['member_num'])?$member_num[0]['member_num']:0).'</span>位成员。</p>
 							<p class="proMar">在这里，你可以分享你的一切精彩内容！马上加入吧？</p>
 							<div class="prohr"></div>
-							<div class="btn"><a href="www.mastersea.com:8090/project/show?project_id='.$project_id.'" target="_blank">马上加入</a></div>
+							<div class="btn"><a id="pro_link" href="www.mastersea.com:8090/project/show?project_id='.$project_id.'" target="_blank">马上加入</a></div>
 						</div>
 					</div>';
         $subject='邀请';

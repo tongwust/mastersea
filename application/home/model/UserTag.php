@@ -45,6 +45,7 @@ class UserTag extends Model{
 				WHERE ut.user_id = :user_id && t.pid = :pid && t.themeid = :themeid';
 				
 		$res = Db::query($sql , ['user_id' => $user_id,'pid' => $pid, 'themeid' => $themeid]);
+		
 		return $res;
 	}
 	
