@@ -25,7 +25,7 @@ class UserAttention extends Model{
 		$from = input('from')?input('from'):0;
 		$page_size = input('page_size')?input('page_size'):35;
 		
-		$sql = 'SELECT ua.user_id,u.name user_name,s.src_id user_src_id,s.access_url user_access_url
+		$sql = 'SELECT DISTINCT(ua.user_id),u.name user_name,s.src_id user_src_id,s.access_url user_access_url
 				FROM user_attention AS ua LEFT JOIN user AS u ON ua.user_id = u.user_id
 					LEFT JOIN src_relation AS sr ON sr.relation_id = u.user_id && sr.type = 3
 					LEFT JOIN src AS s ON s.src_id = sr.src_id && s.type = 2
@@ -60,10 +60,10 @@ class UserAttention extends Model{
 		return $res;
 	}
 	public function getMyAttenUsersByUserId(){
-		$sql = 'SELECT follow_user_id
+		$sql = 'SELECT user_id
 				FROM user_attention
-				WHERE user_id = :user_id';
-		$res = Db::query( $sql, ['user_id' => input('user_id')]);
+				WHERE follow_user_id = :follow_user_id';
+		$res = Db::query( $sql, ['follow_user_id' => input('user_id')]);
 		
 		return $res;
 	}

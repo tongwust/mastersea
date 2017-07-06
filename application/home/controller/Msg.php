@@ -48,8 +48,8 @@ class Msg extends Controller{
 			exit;
 		}
 		$send_user_id = session('userinfo')['user_id'];
-//		$send_user_id = input('send_user_id');
-		$send_user_id = 3;//test
+		$send_user_id = input('send_user_id');
+//		$send_user_id = 3;//test
 		$receive_user_id = input('receive_user_id');
 		$msg_content = trim( input('msg_content'));
 		$type = input('type')?input('type'):1;
@@ -111,7 +111,7 @@ class Msg extends Controller{
 		}
 		$send_user_id = session('userinfo')['user_id'];
 //		$send_user_id = input('send_user_id');
-		$send_user_id = 3;//test
+//		$send_user_id = 3;//test
 		$msgs = json_decode(input('msgs'),true);
 		if($send_user_id <= 0 || count($msgs) <= 0 ){
 			$ret['r'] = -1;
@@ -125,7 +125,7 @@ class Msg extends Controller{
 			if( $v['type'] == 2){
 				$msg_arr = convertUrlQuery( base64_decode($v['msg_content']) );
 				if( !(isset($msg_arr['project_id']) && isset($msg_arr['charge_user_id']) && isset($msg_arr['user_id'])) ){
-					$ret['r'] = -1;
+					$ret['r'] = -3;
 					$ret['msg'] = 'msg_content参数格式不符';
 					return json_encode($ret);
 					exit;
@@ -137,27 +137,14 @@ class Msg extends Controller{
 		$msg = model('Msg');
 		Db::startTrans();
 		try{
-//			$msg_text -> msg_content = $msg_content;
-//			$msg_text -> msg_title = input('msg_title');
-//			$msg_text -> type = input('type')?input('type'):1;
 			$msg_ids = $msg_text -> saveAll( $text_arr);
-//			dump($msg_ids[0]->msg_id);
 			$msg_list = [];
 			$i = 0;
 			foreach( $msgs as $val){
 				array_push( $msg_list, ['msg_id'=>$msg_ids[$i++]->msg_id,'send_user_id'=>$val['send_user_id'],'receive_user_id'=>$val['receive_user_id']]);
-//				$msg_list['msg_id'] = $msg_text -> msg_id[$i++];
-//				$msg_list['send_user_id'] = $val['send_user_id'];
-//				$msg_list['receive_user_id'] = $val['receive_user_id'];
 			}
-//			dump($msg_list);
 			$msg -> saveAll( $msg_list);
 			$ret['msg_ids'] = array_column( $msg_list,'msg_id');
-//			$msg -> msg_id = $msg_text->msg_id;
-//			$msg -> send_user_id = $send_user_id;
-//			$msg -> receive_user_id = $receive_user_id;
-//			$msg -> save();
-//			$ret['msg_id'] = $msg_text->msg_id;
 			Db::commit();
 		}catch(\Exception $e){
 			Db::rollback();
@@ -166,6 +153,7 @@ class Msg extends Controller{
 		}
 		return json_encode($ret);
 	}
+	
 	public function get_my_send_msgs(){
 		$ret = [
 			'r' => 0,

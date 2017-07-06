@@ -48,10 +48,11 @@ class ProjectAttention extends Controller{
 //		dump($res);
 		if( count($res) > 0){
 			$taskids_arr = array_column($res, 'task_id');//dump($taskids_arr);
-			$comment_arr = $comment->get_task_comment_by_task_ids(implode(',', $taskids_arr), 2);
+			$task_ids_str = implode(',', $taskids_arr);
+			$comment_arr = ($task_ids_str == '')?[]:$comment->get_task_comment_by_task_ids($task_ids_str, 2);
 			if( $user_id > 0){//login
-				$task_praise_res = $praise -> get_user_praise( $user_id, implode(',', $taskids_arr), 2);//dump($task_praise_res);
-				$task_collect_res = $collect -> get_user_collect( $user_id, implode(',', $taskids_arr), 2);//dump($task_collect_res);
+				$task_praise_res = ($task_ids_str == '')?[]:$praise -> get_user_praise( $user_id, $task_ids_str, 2);//dump($task_praise_res);
+				$task_collect_res = ($task_ids_str == '')?[]:$collect -> get_user_collect( $user_id, $task_ids_str, 2);//dump($task_collect_res);
 				$task_praise = [];
 				foreach($task_praise_res as $r){
 					$task_praise[$r['cid']] = $r['praise_id'];

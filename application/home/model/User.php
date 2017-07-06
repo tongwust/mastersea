@@ -35,15 +35,17 @@ class User extends Model{
 								from user
 								where name=:name && pwd=:pwd && status=1',
 								['name'=>$name,'pwd'=>$pwd]);
-		return $res;
 		
+		return $res;
 	}
 	public function searchUserByName(){
 		$sql = 'SELECT u.user_id,u.name,s.src_id,s.access_url
-				FROM user u LEFT JOIN src_relation sr ON u.user_id = sr.relation_id && sr.type = 3
+				FROM user u LEFT JOIN user_contact uc ON u.user_id = uc.user_id
+							LEFT JOIN src_relation sr ON u.user_id = sr.relation_id && sr.type = 3
 							LEFT JOIN src s ON sr.src_id = s.src_id && s.type = 2
-				WHERE u.status = 1 && LOCATE(:name,u.name) > 0';
-		$res = Db::query($sql, ['name' => input('name')]);
+				WHERE u.status = 1 && (LOCATE(:name,u.name) > 0 || uc.contact = :contact)
+					  GROUP BY u.user_id';
+		$res = Db::query($sql, ['name' => input('name'),'contact' => input('name')]);
 		
 		return $res;
 	}

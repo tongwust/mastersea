@@ -15,6 +15,13 @@ class ProjectTag extends Model{
 		$res = Db::query( $sql, ['project_id' => $project_id]);
 		return $res;
 	}
+	public function getProjectTags( $project_ids_str){
+		$sql = 'SELECT pt.project_id,ti.tag_id,ti.name
+				FROM project_tag AS pt LEFT JOIN tag_info AS ti ON pt.tag_id = ti.tag_id
+				WHERE pt.project_id in ('.$project_ids_str.')';
+		$res = Db::query( $sql);
+		return $res;
+	}
 }
 
 ?>

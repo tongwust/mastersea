@@ -134,9 +134,9 @@ class Index extends Controller
 		$pwd = trim(input('pwd'));
 		$repwd = trim(input('repwd'));
 		$mobile = trim(input('mobile'));
-		$position_id = input('position_id');
-		$skill_ids = trim(input('skill_ids'));
-		$interest_ids = trim(input('interest_ids'));
+		$position = json_decode(trim(input('position')), true);
+		$skill = json_decode(trim(input('skill')), true);
+		$concern = json_decode(trim(input('concern')), true);
 		
 		if($name == '' || $pwd == '' || $repwd == '' || $mobile == ''){
 			$ret['r'] = -5;
@@ -171,6 +171,8 @@ class Index extends Controller
 		$user_contact = model('UserContact');
 		$user_info = model('UserInfo');
 		$user_tag = model('UserTag');
+		$tag = new Tag;
+		
 		$user_contact->contact = $mobile;
 		$user_contact->type = 1;
 		Db::startTrans();
@@ -180,28 +182,62 @@ class Index extends Controller
 			$user_info->user_id = $user->user_id;
 			$user_contact->save();
 			$user_info->save();
-			if($position_id != ''){
-				
-				$user_tag->user_id = $user->user_id;
-				$user_tag->tag_id = $position_id;
-				$user_tag->save();
+			if( count( $position) > 0){
+				$position_list = [];
+				for($i = 0; $i < count($position); $i++){
+					if( $position[$i]['tag_id'] ){
+						array_push( $position_list, ['user_id' => $user->user_id, 'tag_id' => $position[$i]['tag_id'] ] );
+					}else if( !$position[$i]['tag_id'] && $position[$i]['name'] ){
+						$tag_res = $tag -> tag_add2( 534, $position[$i]['name'], '', 10, 2);//534 other position
+						if( $tag_res['r'] == 0 && $tag_res['tag_id'] > 0){
+							array_push( $position_list, ['user_id' => $user->user_id, 'tag_id' => $tag_res['tag_id'] ] );
+						}
+					}
+				}
+				if( count($position_list) > 0){
+					$user_tag -> saveAll( $position_list );
+				}
 			}
-			$skill_arr = explode(',', $skill_ids);
-			if($skill_ids != '' && count($skill_arr) > 0){
+			if( count( $skill ) > 0){
 				$skill_list = [];
-				for($i = 0; $i < count($skill_arr); $i++){
-					array_push($skill_list, ['user_id'=>$user->user_id,"tag_id"=>$skill_arr[$i]]);
+				for($i = 0; $i < count($skill); $i++){
+					if( $skill[$i]['tag_id']){
+						array_push( $skill_list, ['user_id' => $user->user_id, 'tag_id' => $skill[$i]['tag_id'] ]);
+					}else if( !$skill[$i]['tag_id'] && $skill[$i]['name']){
+						$tag_res = $tag -> tag_add2( 30, $skill[$i]['name'], '', 11, 2);//30 other skill
+						if( $tag_res['r'] == 0 && $tag_res['tag_id'] > 0){
+							array_push( $skill_list, ['user_id' => $user->user_id, 'tag_id' => $tag_res['tag_id'] ] );
+						}
+					}
 				}
-				$user_tag->save($skill_list);
-			}
-			$interest_arr = explode(',', $interest_ids);
-			if($interest_ids != '' && count($interest_arr) > 0){
-				$interest_list = [];
-				for($i = 0; $i < count($interest_arr); $i++){
-					array_push($interest_list, ['user_id'=>$user->user_id,"tag_id"=>$interest_arr[$i]]);
+				if( count($skill_list) > 0){
+					$user_tag -> saveAll( $skill_list );
 				}
-				$user_tag->save($interest_list);
 			}
+			if( count( $concern) > 0){
+				$concern_list = [];
+				for($i = 0; $i < count($concern); $i++){
+					if( $concern[$i]['tag_id']){
+						array_push( $concern_list, ['user_id' => $user->user_id, 'tag_id' => $concern[$i]['tag_id'] ]);
+					}else if( !$concern[$i]['tag_id'] && $concern[$i]['name'] ){
+						$tag_res = $tag -> tag_add2( 22, $concern[$i]['name'], '', 9, 2);//30 concern
+						if( $tag_res['r'] == 0 && $tag_res['tag_id'] > 0){
+							array_push( $concern_list, ['user_id' => $user->user_id, 'tag_id' => $tag_res['tag_id'] ] );
+						}
+					}
+				}
+				if( count( $concern_list) > 0){
+					$user_tag -> saveAll( $concern_list);
+				}
+			}
+//			$interest_arr = explode(',', $interest_ids);
+//			if($interest_ids != '' && count($interest_arr) > 0){
+//				$interest_list = [];
+//				for($i = 0; $i < count($interest_arr); $i++){
+//					array_push($interest_list, ['user_id'=>$user->user_id,"tag_id"=>$interest_arr[$i]]);
+//				}
+//				$user_tag->save($interest_list);
+//			}
 			Db::commit();
 			$ret['r'] = 0;
 			$ret['msg'] = '添加成功！';
@@ -351,7 +387,7 @@ class Index extends Controller
 		$uinfo = $user_info -> get_user_detail_by_id( $user_id);
 		$username = isset($uinfo[0]['name'])?$uinfo[0]['name']:'';
 //		dump($uinfo);
-		$tags = $user_tag -> get_tag_by_userid($user_id, 22, 10);
+		$tags = $user_tag -> get_tag_by_userid($user_id, 10, 3);
 //		dump($tags);
 		
 		$str = '<style>

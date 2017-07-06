@@ -36,5 +36,16 @@ class Tag extends Model{
     	return count($res);
 	}
 	
+	public function addTag( $pid, $name, $short_name, $themeid, $type){
+		
+		$sql = "call addTag('{$pid}','{$name}','{$short_name}','{$themeid}','{$type}',@id)";
+		$res = Db::query( $sql, array());
+		$res_tag_id = Db::query('select @id');
+		if( count($res) > 0){
+			$res[0]['tag_id'] = (count($res_tag_id) > 0)?$res_tag_id[0]['@id']:'';
+		}
+		return $res;
+	}
+	
 }
 ?>

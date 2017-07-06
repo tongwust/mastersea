@@ -52,10 +52,11 @@ class Project extends Controller{
 //		dump( $res );
 		if( count($res) > 0){
 			$taskids_arr = array_column($res, 'task_id');//dump($taskids_arr);
-			$comment_arr = $comment->get_task_comment_by_task_ids(implode(',', $taskids_arr), 2);
+			$task_ids_str = implode(',', $taskids_arr);
+			$comment_arr = ($task_ids_str == '')?[]:$comment->get_task_comment_by_task_ids($task_ids_str, 2);
 			if( $user_id > 0){//login
-				$task_praise_res = $praise -> get_user_praise( $user_id, implode(',', $taskids_arr), 2);//dump($task_praise_res);
-				$task_collect_res = $collect -> get_user_collect( $user_id, implode(',', $taskids_arr), 2);//dump($task_collect_res);
+				$task_praise_res = ($task_ids_str == '')?[]:$praise -> get_user_praise( $user_id, $task_ids_str, 2);//dump($task_praise_res);
+				$task_collect_res = ($task_ids_str == '')?[]:$collect -> get_user_collect( $user_id, $task_ids_str, 2);//dump($task_collect_res);
 				$task_praise = [];
 				foreach($task_praise_res as $r){
 					$task_praise[$r['cid']] = $r['praise_id'];
@@ -411,24 +412,24 @@ class Project extends Controller{
 		$project_atten = model('ProjectAttention');
 		
 		$res = $user_project_tag -> getProjectListByUserid();
-		
+//		dump($res);
 		$project_id_arr = array_column( $res, 'project_id');
 		$project_ids_str = implode( ',', $project_id_arr);
 		
-		$atten_arr = $project_atten -> getProjectAttenNum($project_ids_str);
+		$atten_arr = ($project_ids_str == '')?[]:$project_atten -> getProjectAttenNum($project_ids_str);
 		$arr = [];
 		foreach($atten_arr as $val){
 			$arr[$val['project_id']] = $val['atten_num'];
 		}
 		
-		$members = $user_project_tag -> get_project_members( $project_ids_str );
+		$members = ($project_ids_str == '')?[]:$user_project_tag -> get_project_members( $project_ids_str );
 		$member_num_arr = [];
 		foreach( $members as $v){
 			$member_num_arr[$v['project_id']] = isset($member_num_arr[$v['project_id']])?$member_num_arr[$v['project_id']] + 1:1;
 		}
 		foreach( $res as &$v){
 			$v['atten_num'] = empty($arr[$v['project_id']])?0:$arr[$v['project_id']];
-			$v['member_num'] = empty($member_num_arr[$v['project_id']])?0:$member_num_arr[$v['project_id']];
+			$v['member_num'] = empty($member_num_arr[$v['project_id']])?0:$member_num_arr[$v['project_id']]-1;
 		}
 		$ret['project_list'] = $res;
 		
@@ -489,7 +490,7 @@ class Project extends Controller{
 			$project_ids_str = implode( ',', $project_id_arr);
 		}else{
 			//search
-			$res = $project -> getSearchProjects( $project_ids_str );
+			$res = ($project_ids_str == '')?[]:$project -> getSearchProjects( $project_ids_str );
 		}
 		if( empty($project_ids_str) || $project_ids_str == ''){
 			$ret['msg'] = '数据为空';
@@ -520,7 +521,7 @@ class Project extends Controller{
 				}
 			}
 			$v['project_atten_num'] = empty($arr[$v['project_id']])?0:$arr[$v['project_id']];
-			$v['member_num'] = empty($member_num_arr[$v['project_id']])?0:$member_num_arr[$v['project_id']];
+			$v['member_num'] = empty($member_num_arr[$v['project_id']])?0:$member_num_arr[$v['project_id']]-1;
 		}
 		$ret['project_list'] = $res;
 		//dump($res);
@@ -651,11 +652,12 @@ class Project extends Controller{
 			$ret['data']['tasks'] = [];
 			if( count($tasks) > 0){
 				$task_arr = array_column($tasks, 'task_id');
-				$src_arr = $src_relation->get_task_src_by_task_ids(implode(',', $task_arr), 2);//task
-				$res = $collect -> getTasksCollectNum( implode(',', $task_arr));//dump($res);
+				$task_ids_str = implode(',', $task_arr);
+				$src_arr = ($task_ids_str == '')?[]:$src_relation->get_task_src_by_task_ids($task_ids_str, 2);//task
+				$res = ($task_ids_str == '')?[]:$collect -> getTasksCollectNum( $task_ids_str);//dump($res);
 				if( $user_id > 0){//login
-					$task_praise_res = $praise -> get_user_praise( $user_id, implode(',', $task_arr), 2);//dump($task_praise_res);
-					$task_collect_res = $collect -> get_user_collect( $user_id, implode(',', $task_arr), 2);//dump($task_collect_res);
+					$task_praise_res = ($task_ids_str == '')?[]:$praise -> get_user_praise( $user_id, $task_ids_str, 2);//dump($task_praise_res);
+					$task_collect_res = ($task_ids_str == '')?[]:$collect -> get_user_collect( $user_id, $task_ids_str, 2);//dump($task_collect_res);
 					$task_praise = [];
 					foreach($task_praise_res as $r){
 						$task_praise[$r['cid']] = $r['praise_id'];
@@ -680,7 +682,7 @@ class Project extends Controller{
 					$v['login']['is_praise'] = isset($task_praise[$v['task_id']])?1:0;
 					$v['login']['is_collect'] = isset($task_collect[$v['task_id']])?1:0;
 				}
-				$comment_arr = $comment->get_task_comment_by_task_ids(implode(',', $task_arr), 2);//dump($comment_arr);
+				$comment_arr = $comment->get_task_comment_by_task_ids($task_ids_str, 2);//dump($comment_arr);
 				foreach($tasks as &$t){
 					$t['comment'] = [];
 					foreach($comment_arr as $c){

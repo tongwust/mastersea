@@ -31,8 +31,10 @@ class UserInfo extends Controller
     		return json_encode( $ret);
     		exit;
     	}
-    	$ret['userinfo'] = session('userinfo');
-    	
+    	$user_info = model('UserInfo');
+    	$res = $user_info -> getUserPartInfo(session('userinfo')['user_id']);
+//  	$ret['userinfo'] = session('userinfo');
+    	$ret['userinfo'] = (count($res) > 0)?$res[0]:[];
     	return json_encode($ret);
     }
     public function get_my_atten_project_list(){
@@ -63,8 +65,8 @@ class UserInfo extends Controller
     	
     	$project_ids_str = implode(',',array_unique(array_column($res,'project_id')));
     	
-    	$atten_arr = $project_attention -> getProjectAttenNum($project_ids_str);
-    	$users_arr = $user_project_tag -> get_user_info_by_project_ids($project_ids_str);dump($project_ids_str);
+    	$atten_arr = ($project_ids_str == '')?[]:$project_attention -> getProjectAttenNum($project_ids_str);
+    	$users_arr = ($project_ids_str == '')?[]:$user_project_tag -> get_user_info_by_project_ids($project_ids_str);
 
     	$atten = [];
     	foreach($atten_arr as $a){
@@ -114,12 +116,18 @@ class UserInfo extends Controller
     	$collect = model('Collect');
     	$user_project_tag = model('UserProjectTag');
     	
-    	$res = $collect -> getMyCollectProjectList($user_id);dump($res);
+    	$res = $collect -> getMyCollectProjectList($user_id);
     	
     	$project_ids_str = implode(',',array_unique(array_column($res,'project_id')));
 //  	dump($project_ids_str);
 //  	$atten_arr = $project_attention -> getProjectAttenNum($project_ids_str);
     	$users_arr = ($project_ids_str == '')?[]:$user_project_tag -> get_user_info_by_project_ids($project_ids_str);
+    	//dump($users_arr);
+    	$members = $user_project_tag -> get_project_members( $project_ids_str );
+		$member_num_arr = array();
+		foreach( $members as $v){
+			$member_num_arr[$v['project_id']] = isset($member_num_arr[$v['project_id']])?$member_num_arr[$v['project_id']] + 1:1;
+		}
 //  	$atten = [];
 //  	foreach($atten_arr as $a){
 //  		$atten[$a['project_id']] = $a['atten_num'];
@@ -128,9 +136,9 @@ class UserInfo extends Controller
     	foreach($users_arr as $u){
     		$users[$u['project_id']] = $u;
     	}
-//  	dump($users);
     	foreach($res as $k => &$v){
 //  		$v['atten_num'] = isset($atten[$v['project_id']])?$atten[$v['project_id']]:0;
+			$v['member_num'] = empty($member_num_arr[$v['project_id']])?0:$member_num_arr[$v['project_id']]-1;
     		if( isset($users[$v['project_id']])){
     			$v['user_id'] = $users[ $v['project_id'] ]['user_id'];
     			$v['user_name'] = $users[ $v['project_id'] ]['username'];
@@ -177,21 +185,21 @@ class UserInfo extends Controller
     	}
 //  	dump($friend_arr);
     	$user_ids_str = implode(',',array_column( $res, 'user_id'));
-    	$project_num_arr = $user_project_tag -> getProjectNumByUserids($user_ids_str);
+    	$project_num_arr = ($user_ids_str == '')?[]:$user_project_tag -> getProjectNumByUserids($user_ids_str);
 
 		$arr = [];
 		foreach($project_num_arr as $v){
 			$arr[$v['project_id']] = $v['user_id'];
 		}
 		$arr = array_count_values( $arr );
-		$tags = $user_tag -> getTagsByUserIds($user_ids_str);
+		$tags = ($user_ids_str == '')?[]:$user_tag -> getTagsByUserIds($user_ids_str);
 		
-    	$atten_num_arr = $user_attention -> getAttenNumByUserids($user_ids_str);
+    	$atten_num_arr = ($user_ids_str == '')?[]:$user_attention -> getAttenNumByUserids($user_ids_str);
 		$atten_arr = [];
 		foreach( $atten_num_arr as $a){
 			$atten_arr[$a['follow_user_id']] = $a['atten_num'];
 		}
-		$project_src = $user_project_tag -> getProjectCoverByUserids($user_ids_str);
+		$project_src = ($user_ids_str == '')?[]:$user_project_tag -> getProjectCoverByUserids($user_ids_str);
 
     	foreach($res as &$v){
     		$v['tags'] = [];
@@ -241,11 +249,13 @@ class UserInfo extends Controller
 //  	$user_id = 3;
     	$user_project_tag = model('UserProjectTag');
     	$project_task_user = model('ProjectTaskUser');
+    	$project_tag = model('ProjectTag');
     	
     	$res = $user_project_tag -> GetMyProjectFullList( $user_id );
     	$project_ids_str = implode( ',', array_column( $res, 'project_id') );
 //  	dump($res);
     	$tasks = ($project_ids_str == '')?[]:$project_task_user -> getPartTaskList( $project_ids_str);
+    	$addr = ($project_ids_str == '')?[]:$project_tag -> getProjectTags( $project_ids_str);
 //  	dump($tasks);
     	foreach( $res as &$v){
     		$v['task'] = [];
@@ -253,6 +263,13 @@ class UserInfo extends Controller
     			if( $v['project_id'] == $t['project_id']){
     				unset( $t['project_id']);
     				array_push( $v['task'], $t);
+    			}
+    		}
+    		$v['address'] = [];
+    		foreach( $addr as $a){
+    			if( $v['project_id'] == $a['project_id']){
+    				unset($a['project_id']);
+    				array_push( $a['address'], $a);
     			}
     		}
     	}
@@ -281,7 +298,7 @@ class UserInfo extends Controller
     		exit;
     	}
     	$user_id = session('userinfo')['user_id'];
-//  	$user_id = 3;//test
+//  	$user_id = 40;//test
     	$user_attention = model('UserAttention');
     	$user_project_tag = model('UserProjectTag');
     	$user_tag = model('UserTag');
@@ -294,7 +311,7 @@ class UserInfo extends Controller
     	}
 //  	dump($res);
     	$user_ids_str = implode(',',array_column( $res, 'user_id'));
-    	$project_num_arr = $user_project_tag -> getProjectNumByUserids($user_ids_str);
+    	$project_num_arr = ($user_ids_str == '')?[]:$user_project_tag -> getProjectNumByUserids($user_ids_str);
 //  	dump($project_num_arr);
 		$arr = [];
 		foreach($project_num_arr as $v){
@@ -302,15 +319,15 @@ class UserInfo extends Controller
 		}
 		$arr = array_count_values( $arr );
 //		$project_tags = [];
-		$tags = $user_tag -> getTagsByUserIds($user_ids_str);
+		$tags = ($user_ids_str == '')?[]:$user_tag -> getTagsByUserIds($user_ids_str);
 		
-    	$atten_num_arr = $user_attention -> getAttenNumByUserids($user_ids_str);
+    	$atten_num_arr = ($user_ids_str == '')?[]:$user_attention -> getAttenNumByUserids($user_ids_str);
 		$atten_arr = [];
 		foreach( $atten_num_arr as $a){
 			$atten_arr[$a['follow_user_id']] = $a['atten_num'];
 		}
 //  	dump($atten_arr);
-    	$project_src = $user_project_tag -> getProjectCoverByUserids($user_ids_str);
+    	$project_src = ($user_ids_str == '')?[]:$user_project_tag -> getProjectCoverByUserids($user_ids_str);
 //  	dump($project_src);
     	foreach($res as &$v){
     		$v['tags'] = [];
@@ -366,7 +383,7 @@ class UserInfo extends Controller
 //  	dump($res);
     	$project_ids_str = implode(',', array_column( $res, 'project_id'));
     	
-    	$users = $project_attention -> getProjectAttenUsers($project_ids_str);
+    	$users = ($project_ids_str == '')?[]:$project_attention -> getProjectAttenUsers($project_ids_str);
 //  	dump($users);
     	$user_ids_str = implode(',', array_unique(array_column($users,'user_id')) );
     	$tags = ($user_ids_str == '')?[]:$user_tag -> getTagsByUserIds($user_ids_str);
@@ -480,7 +497,21 @@ class UserInfo extends Controller
     			$project_res = $user_project_tag->get_project_by_userid();
     			
     			$tag_res = $user_tag->get_address_position_skill_interest_by_userid();
-    			$ret['tags'] = $tag_res;
+    			$address = [];
+    			$position = [];
+    			$skill = [];
+    			foreach($tag_res as $v){
+    				if($v['themeid'] == 10){
+    					array_push( $position, ['tag_id'=>$v['tag_id'],'name'=>$v['name']]);
+    				}else if($v['themeid'] == 11){
+    					array_push( $skill, ['tag_id'=>$v['tag_id'],'name'=>$v['name']]);
+    				}else if($v['themeid'] == 14){
+    					array_push( $address, ['tag_id'=>$v['tag_id'],'name'=>$v['name']]);
+    				}
+    			}
+    			$ret['address'] = $address;
+    			$ret['position'] = $position;
+    			$ret['skill'] = $skill;
     			$ret['follow_num'] = count($atten_res);
     			$ret['project_num'] = count($project_res);
     		}else{
@@ -501,9 +532,10 @@ class UserInfo extends Controller
 			'data' => [],
 			'position' => [],
 			'skill' => [],
-			'interest' => [],
+			'concern' => [],
 			'contact' => [],
 			'language' => [],
+			'address' => [],
 		];
 		$encrypt = new Encrypt;
 		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
@@ -523,20 +555,12 @@ class UserInfo extends Controller
     	if(session('userinfo') != null){
 			$me_id = session('userinfo')['user_id'];
 		}
-//  	dump(session('userinfo'));
-//  	if( !session('userinfo') ){
-//  		$ret['r'] = -100;
-//  		$ret['msg'] = '未登录，请登录';
-//  		return json_encode( $ret);
-//  	}
-//  	$user_id = session('userinfo')['user_id'];
-//  	$ret['msg'] = $user_info;
     	if( $user_id > 0 ){
-    		$position = $user_tag->get_tag_by_userid($user_id, 22, 10);
-    		$skill = $user_tag->get_tag_by_userid($user_id, 30, 11);
-    		$interest = $user_tag->get_tag_by_userid($user_id, 31, 12);
-    		$language = $user_tag->get_tag_by_userid($user_id, 32, 13);
-    		
+    		$position = $user_tag->get_tag_by_userid($user_id, 10, 3);
+    		$skill = $user_tag->get_tag_by_userid($user_id, 11, 2);
+    		$concern = $user_tag->get_tag_by_userid($user_id, 10, 2);
+    		$language = $user_tag->get_tag_by_userid($user_id, 13, 2);
+    		$address = $user_tag -> get_tag_by_userid($user_id, 14, 2);
     		$result = $user_info->get_user_detail_by_id( $user_id);
     		$partners_num = $user_project_tag -> getPartnersNumByUserId();
     		$parr = [];
@@ -545,7 +569,7 @@ class UserInfo extends Controller
     		}
 //  		dump($partners_num);
     		$by_atten_unum = $user_attention -> get_follow_users_by_id();
-    		$my_atten_unum = $user_attention -> getMyAttenUsersByUserId();
+    		$my_atten_unum = $user_attention -> getMyAttenUsersByUserId();//dump($my_atten_unum);
     		$by_atten_pnum = $user_project_tag -> getProjectAttenNum();
     		$project_res = $user_project_tag->get_project_by_userid();
     		$byArr = [];
@@ -560,16 +584,17 @@ class UserInfo extends Controller
     			$ret['data']['partners_num'] = array_sum($parr);
     			$ret['data']['by_atten_unum'] = count($by_atten_unum);
     			$ret['data']['my_atten_unum'] = count($my_atten_unum);
-    			$follow_user_arr = array_column($my_atten_unum,'follow_user_id');
-    			$ret['data']['is_atten'] = in_array( $me_id, $follow_user_arr)?1:0;
+    			$user_arr = array_column($my_atten_unum,'user_id');
+    			$ret['data']['is_atten'] = in_array( $me_id, $user_arr)?1:0;
     			$ret['data']['by_atten_pnum'] = array_sum($byArr);
     			$ret['data']['my_atten_pnum'] = (count($my_atten_pnum) > 0)?$my_atten_pnum[0]['my_atten_pnum']:0;
     			$ret['data']['project_num'] = count($project_res);
     			$ret['position'] = $position;
     			$ret['skill'] = $skill;
-    			$ret['interest'] = $interest;
+    			$ret['concern'] = $concern;
     			$ret['contact'] = $contact;
     			$ret['language'] = $language;
+    			$ret['address'] = $address;
     		}
     	}else{
     		$ret['r'] = -1;
@@ -599,17 +624,20 @@ class UserInfo extends Controller
 		}else{
 			$user_id = session('userinfo')['user_id'];
 		}
-    	$user_id = input('user_id');
+//  	$user_id = input('user_id');
     	$sex = input('sex');
     	$birthday = input('birthday');
     	$fullname = trim(input('fullname'));
     	$en_name = trim(input('en_name'));
-    	$area_id = input('area_id');
+    	
     	$curr_company = input('curr_company');
     	$short_name = input('short_name');
-    	$position_ids = input('position_ids');
-    	$language_ids = input('language_ids');
-    	$skill_ids = input('skill_ids');
+    	
+    	$address = json_decode( input('address'), true);
+    	$position = json_decode( input('position'), true);
+    	$language = json_decode( input('language'), true);
+    	$skill = json_decode( input('skill'), true);
+    	$concern = json_decode( input('concern'), true);
     	if( $birthday == ''){
     		$ret['msg'] = '生日不能为空';
     		return json_encode($ret);
@@ -624,39 +652,91 @@ class UserInfo extends Controller
     	$user_info = model('UserInfo');
     	$user_contact = model('UserContact');
     	$user_tag = model('UserTag');
+    	$tag = new Tag;
     	if($user_id > 0){
     		Db::startTrans();
     		try{
-    			$res = $user_info->allowField(['sex','birthday','fullname','en_name','area_id','curr_company','en_company','short_name','education_school','intro'])->save(input(),['user_id'=>$user_id]);
+    			$res = $user_info->allowField(['sex','birthday','fullname','en_name','curr_company','en_company','short_name','education_school','intro'])->save(input(),['user_id'=>$user_id]);
+//  			$user_contact -> del_user_contact_by_userid( $user_id);
     			if(count($contact) > 0){
-    				
-    				$res = $user_contact->saveAll($contact);
+    				$res = $user_contact->saveAll( $contact);
     			}
-    			$position_arr = (strlen($position_ids) == 0)?[]:explode(',' , $position_ids);
-    			$position_list = [];
-    			for($i = 0; $i < count($position_arr); $i++){
-    				array_push($position_list,['user_id'=>$user_id,'tag_id' => $position_arr[$i],'user_tag_type'=>1]);
-    			}
-    			$user_tag->delete_user_tag( 22, 10);//职业
-    			$user_tag->saveAll($position_list);
     			
-    			$language_arr = (strlen($language_ids) == 0)?[]:explode(',' , $language_ids);
-    			$language_list = [];
-    			for($i = 0; $i < count($language_arr); $i++){
-    				array_push($language_list,['user_id'=>$user_id, 'tag_id' => $language_arr[$i],'user_tag_type'=>2]);
+    			$user_tag -> delete_user_tag($user_id, 10, 3);//del position
+    			if( count( $position ) > 0 ){
+    				$position_list = [];
+					for($i = 0; $i < count($position); $i++){
+						if( $position[$i]['tag_id'] ){
+							array_push( $position_list, ['user_id' => $user_id, 'tag_id' => $position[$i]['tag_id'] ] );
+						}else if( !$position[$i]['tag_id'] && $position[$i]['name'] ){
+							$tag_res = $tag -> tag_add2( 534, $position[$i]['name'], '', 10, 2);//534 other position
+							if( $tag_res['r'] == 0 && $tag_res['tag_id'] > 0){
+								array_push( $position_list, ['user_id' => $user_id, 'tag_id' => $tag_res['tag_id'] ] );
+							}
+						}
+					}
+					if( count($position_list) > 0){
+						$user_tag -> saveAll( $position_list );
+					}
     			}
-    			$user_tag->delete_user_tag( 32, 13);//工作语言
-    			if( count($language_list) > 0){
-    				$user_tag->saveAll($language_list);
+    			$user_tag -> delete_user_tag($user_id, 14, 3);//del address province
+    			$user_tag -> delete_user_tag($user_id, 14, 4);//del address city
+    			if( count( $address ) > 0){
+    				$address_list = [];
+    				for($i = 0; $i < count($address); $i++){
+    					if( $address[$i]['tag_id']){
+    						array_push( $address_list, ['user_id' => $user_id, 'tag_id' => $address[$i]['tag_id'] ] );
+    					}
+    				}
+    				if( count($address_list) > 0){
+						$user_tag -> saveAll( $address_list );
+					}
     			}
-    			$skill_arr = (strlen($skill_ids) == 0)?[]:explode(',' , $skill_ids);
-    			$skill_list = [];
-    			for($i = 0; $i < count($skill_arr); $i++){
-    				array_push($skill_list,['user_id'=>$user_id, 'tag_id' => $skill[$i],'user_tag_type'=>3]);
+    			$user_tag -> delete_user_tag($user_id, 11, 2);//del skill
+    			if( count( $skill ) > 0 ){
+    				$skill_list = [];
+					for($i = 0; $i < count($skill); $i++){
+						if( $skill[$i]['tag_id'] ){
+							array_push( $skill_list, ['user_id' => $user_id, 'tag_id' => $skill[$i]['tag_id'] ] );
+						}else if( !$skill[$i]['tag_id'] && $skill[$i]['name'] ){
+							$tag_res = $tag -> tag_add2( 30, $skill[$i]['name'], '', 11, 2);
+							if( $tag_res['r'] == 0 && $tag_res['tag_id'] > 0){
+								array_push( $skill_list, ['user_id' => $user_id, 'tag_id' => $tag_res['tag_id'] ] );
+							}
+						}
+					}
+					if( count($skill_list) > 0){
+						$user_tag -> saveAll( $skill_list );
+					}
     			}
-    			$user_tag->delete_user_tag( 30, 11);//技能
-    			if( count($skill_list) > 0){
-    				$user_tag->saveAll($skill_list);
+    			$user_tag -> delete_user_tag($user_id, 13, 2);//del language
+    			if( count( $language ) > 0){
+    				$language_list = [];
+    				for($i = 0; $i < count($language); $i++){
+    					if( $language[$i]['tag_id']){
+    						array_push( $language_list, ['user_id' => $user_id, 'tag_id' => $language[$i]['tag_id'] ] );
+    					}
+    				}
+    				if( count($language_list) > 0){
+						$user_tag -> saveAll( $language_list );
+					}
+    			}
+    			$user_tag -> delete_user_tag($user_id, 9, 2);//del concern
+    			if( count($concern) > 0){
+    				$concern_list = [];
+    				for($i = 0; $i < count($concern); $i++){
+						if( $concern[$i]['tag_id'] ){
+							array_push( $concern_list, ['user_id' => $user_id, 'tag_id' => $concern[$i]['tag_id'] ] );
+						}else if( !$concern[$i]['tag_id'] && $concern[$i]['name'] ){
+							$tag_res = $tag -> tag_add2( 22, $concern[$i]['name'], '', 9, 2);
+							if( $tag_res['r'] == 0 && $tag_res['tag_id'] > 0){
+								array_push( $concern_list, ['user_id' => $user_id, 'tag_id' => $tag_res['tag_id'] ] );
+							}
+						}
+					}
+					if( count($skill_list) > 0){
+						$user_tag -> saveAll( $concern_list );
+					}
     			}
     			$result['r'] = 0;
     			$result['msg'] = '修改成功';
@@ -669,7 +749,6 @@ class UserInfo extends Controller
     	}else{
     		$result['msg'] = 'user_id不符合要求';
     	}
-    	
     	return json_encode($result);
     }
     

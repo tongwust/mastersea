@@ -22,6 +22,19 @@ class UserInfo extends Model{
 		return $res;
 	}
 	
+	public function getUserPartInfo($user_id){
+		$sql = 'SELECT u.name,ui.sex,s.path,s.resource_path,s.access_url
+				FROM user AS u LEFT JOIN user_info AS ui ON u.user_id = ui.user_id
+							   LEFT JOIN src_relation AS sr ON sr.relation_id = u.user_id && sr.type = 3
+							   LEFT JOIN src AS s ON s.src_id = sr.src_id && s.type = 2
+				WHERE u.user_id = :user_id';
+				
+		$res = Db::query( $sql, ['user_id' => $user_id]);
+		return $res;		
+	}
 	
 }
+
+
+
 ?>

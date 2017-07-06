@@ -9,11 +9,12 @@ class Msg extends Model{
 	
 	public function getMySendMsgs( $user_id ){
 		
-		$sql = 'SELECT m.receive_user_id,m.msg_id,m.status,m.view_time,
+		$sql = 'SELECT m.receive_user_id,u.name receive_user_name,m.msg_id,m.status,m.view_time,
 					   mt.msg_title,mt.msg_content,mt.create_time,s.src_id,s.access_url
 				FROM msg AS m LEFT JOIN msg_text AS mt ON m.msg_id = mt.msg_id
 							  LEFT JOIN src_relation AS sr ON m.receive_user_id = sr.relation_id && sr.type = 3
 							  LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 2
+							  LEFT JOIN user AS u ON u.user_id = m.receive_user_id
 				WHERE m.send_user_id = :send_user_id
 						ORDER BY mt.create_time DESC,m.status DESC';
 		$res = Db::query( $sql, ['send_user_id' => $user_id]);
@@ -23,11 +24,12 @@ class Msg extends Model{
 	
 	public function getMyReceiveMsgs( $user_id ){
 		
-		$sql = 'SELECT m.send_user_id,m.msg_id,m.status,m.view_time,
+		$sql = 'SELECT m.send_user_id,u.name send_user_name,m.msg_id,m.status,m.view_time,
 					   mt.msg_title,mt.msg_content,mt.create_time,s.src_id,s.access_url
 				FROM msg AS m LEFT JOIN msg_text AS mt ON m.msg_id = mt.msg_id
 							  LEFT JOIN src_relation AS sr ON m.send_user_id = sr.relation_id && sr.type = 3
 							  LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 2
+							  LEFT JOIN user AS u ON u.user_id = m.send_user_id
 				WHERE m.receive_user_id = :receive_user_id
 						ORDER BY mt.create_time DESC,m.status DESC';
 		$res = Db::query( $sql, ['receive_user_id' => $user_id]);

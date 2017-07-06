@@ -59,7 +59,7 @@ class UserAttention extends Controller{
 		}
 		$user_id = input('user_id');
 		$follow_user_id = input('follow_user_id');
-		$relation_type = input('relation_type');
+		$relation_type = empty(input('relation_type'))?1:input('relation_type');
 		if( !session('userinfo') ){
 			$ret['r'] = -100;
 			$ret['msg'] = '未登录';

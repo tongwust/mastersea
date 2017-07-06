@@ -63,7 +63,7 @@ class Tag extends Controller{
 			$ret['data'] = $tag->get_tag_by_themeid();
 			$ret['r'] = 0;
 		}else{
-			$ret['msg'] = '传入参数不合法';	
+			$ret['msg'] = '传入参数不合法';
 		}
 		return json($ret);
 	}
@@ -107,35 +107,37 @@ class Tag extends Controller{
 	}
 	
 	public function add_province(){
-		exit;
+//		exit;
 		$p = model('Province');
 		
 		$res = $p->getAllProvince();
 		//dump( $res );
-		foreach($res as $v){
-			
-			$this->add( 41, $v['province'], 14);
-		}
+		return json_encode(array_column($res,'province'));
+//		foreach($res as $v){
+//			
+//			$this->add( 41, $v['province'], 14);
+//		}
 	}
 	public function add_city(){
-		exit;
+		
 		$c = model('City');
-		$res = $c->getAllCity( 140000 );//山西
+		$res = $c->getAllCity( 420000 );
 //		foreach($res as $v){
 //			//$v['short_name'] = $v['city'];
 //			dump(mb_substr( $v['city'], 0, mb_strlen($v['city'])-1, 'utf-8'));echo $v['city'];exit;
 //		}
-		dump($res);
-		foreach( $res as $v){
-			
-			$this->add( 45, $v['city'],mb_substr( $v['city'], 0, mb_strlen($v['city'])-1, 'utf-8'), 14);
-		}
+		return  json_encode((array_column($res,'city')) );
+//		foreach( $res as $v){
+//			
+//			$this->add( 45, $v['city'],mb_substr( $v['city'], 0, mb_strlen($v['city'])-1, 'utf-8'), 14);
+//		}
 		
 	}
 	public function tag_add( $pid, $name, $short_name, $themeid, $type){
 		$ret = [
 			'r' => 0,
 			'msg' => '添加成功',
+			'tag_id' => '',
 		];
 		$encrypt = new Encrypt;
 		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
@@ -147,14 +149,25 @@ class Tag extends Controller{
 		$pid = input('pid');
 		$name = input('name');
 		$short_name = input('short_name');
-		$themeid = empty(input('themeid'))?1:input('themeid');
+		$themeid = (empty(input('themeid'))?0:input('themeid'));
 		$type = empty(input('type'))?1:input('type');
-		if( $pid > 0 ){
-			$res = Db::query('call addTag(:pid,:name,:short_name,:themeid,:type)',['pid'=>$pid,'name'=>$name,'short_name'=>$short_name,'themeid'=>$themeid,'type'=>$type]);
+		
+		$tag = model('Tag');
+		if( $pid > 0 && $themeid > 0){
+			//$res = Db::query('call addTag(:pid,:name,:short_name,:themeid,:type,@id)',['pid'=>$pid,'name'=>$name,'short_name'=>$short_name,'themeid'=>$themeid,'type'=>$type]);
+//			$sql = "call addTag('{$pid}','{$name}','{$short_name}','{$themeid}','{$type}',@id)";
+//			$res = Db::query($sql,array());
+			$res = $tag -> addTag( $pid, $name, $short_name, $themeid, $type);
 			if(!(count($res) > 0 && $res[0][0]['result'] == 1000)){
 				$ret['r'] = -2;
 				$ret['msg'] = '添加失败';
+				return json_encode($ret);
+				exit;
 			}
+			$ret['tag_id'] = $res[0]['tag_id'];
+//			dump($res);
+//			$tag_id = Db::query('select @id');
+//			$ret['tag_id'] = (count($tag_id) > 0)?$tag_id[0]['@id']:'';
 		}else{
 			$ret['r'] = -1;
 			$ret['msg'] = '参数不符合要求';
@@ -162,6 +175,40 @@ class Tag extends Controller{
 		return json_encode($ret);
 	}
 	
+	public function tag_add2( $pid, $name, $short_name, $themeid, $type){
+		$ret = [
+			'r' => 0,
+			'msg' => '添加成功',
+			'tag_id' => '',
+		];
+		if( $pid > 0 ){
+			$res = Db::query('call addTag(:pid,:name,:short_name,:themeid,:type,@id)',['pid'=>$pid,'name'=>$name,'short_name'=>$short_name,'themeid'=>$themeid,'type'=>$type]);
+			if(!(count($res) > 0 && $res[0][0]['result'] == 1000)){
+				$ret['r'] = -2;
+				$ret['msg'] = '添加失败';
+			}
+//			dump($res);
+			$tag_id = Db::query('select @id');
+			$ret['tag_id'] = (count($tag_id) > 0)?$tag_id[0]['@id']:'';
+//			dump( $tag_id);
+		}else{
+			$ret['r'] = -1;
+			$ret['msg'] = '参数不符合要求';
+		}
+		return $ret;
+	}
+	public function test_add_tag(){
+		$arr = ['市场文案策划','活动策划','活动执行','公关总监','公关经理','公关专员','广告创意','广告文案策划',
+				'美术指导','会展活动策划','项目总监','项目经理','项目主管','舞美设计','同声传译','化妆师','造型师','主持人','司仪','设计总监','平面设计师','3D设计师','舞台视觉设计师','创意总监','灯光设计师','礼仪','模特','音响师' ];
+		foreach($arr as $v){
+			dump($v);
+		}
+//		foreach($arr as $v){
+//			$res = tag_add2( 108, $v,'',10,1);
+//			dump($res);
+//		}
+		
+	}
 	public function tag_del(){
 		$ret = [
 			'r' => 0,

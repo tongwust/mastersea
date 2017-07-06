@@ -43,15 +43,15 @@ class User extends Controller{
 		}
 		$user_ids_str = implode( ',', $user_id_arr);
 		
-		$projects = $user_project_tag -> getUserProjectByUserids($user_ids_str);
+		$projects = ($user_ids_str == '')?[]:$user_project_tag -> getUserProjectByUserids($user_ids_str);
 
-		$atten_num_arr = $user_attention -> getAttenNumByUserids($user_ids_str);
+		$atten_num_arr = ($user_ids_str == '')?[]:$user_attention -> getAttenNumByUserids($user_ids_str);
 		$atten_arr = [];
 		foreach( $atten_num_arr as $a){
 			$atten_arr[$a['follow_user_id']] = $a['atten_num'];
 		}
 		
-		$project_num_arr = $user_project_tag -> getProjectNumByUserids($user_ids_str);
+		$project_num_arr = ($user_ids_str == '')?[]:$user_project_tag -> getProjectNumByUserids($user_ids_str);
 		$arr = [];
 		foreach($project_num_arr as $v){
 			$arr[$v['project_id']] = $v['user_id'];

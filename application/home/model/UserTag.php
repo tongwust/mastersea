@@ -27,28 +27,38 @@ class UserTag extends Model{
 		return $res;
 	}
 	
-	public function delete_user_tag( $pid, $themeid){
+	public function delete_user_tag($user_id, $themeid, $level){
 		$user_id = input('user_id');
 		$sql = 'DELETE ut 
-				FROM user_tag AS ut LEFT JOIN tag AS t ON ut.tag_id = t.tag_id
-				WHERE ut.user_id = :user_id && t.pid = :pid && t.themeid = :themeid';
-		$res = Db::query($sql , ['user_id'=> $user_id,'pid' => $pid, 'themeid' => $themeid]);
+				FROM user_tag AS ut INNER JOIN tag AS t ON ut.tag_id = t.tag_id
+				WHERE ut.user_id = :user_id && t.themeid = :themeid && t.level = :level';
+		$res = Db::query($sql , ['user_id'=> $user_id, 'themeid' => $themeid, 'level' => $level]);
 		return $res;
 		
 	}
 	
-	public function get_tag_by_userid($user_id, $pid, $themeid){
+	public function get_tag_by_userid($user_id, $themeid, $level){
 //		$user_id = input('user_id');
-		$sql = 'SELECT ti.tag_id,ti.name
-				FROM user_tag AS ut LEFT JOIN tag AS t ON ut.tag_id = t.tag_id
+		$sql = 'SELECT ti.tag_id,ti.name as tag_name
+				FROM user_tag AS ut INNER JOIN tag AS t ON ut.tag_id = t.tag_id && t.themeid = :themeid && level = :level
 									LEFT JOIN tag_info AS ti ON t.tag_id = ti.tag_id
-				WHERE ut.user_id = :user_id && t.pid = :pid && t.themeid = :themeid';
+				WHERE ut.user_id = :user_id';
 				
-		$res = Db::query($sql , ['user_id' => $user_id,'pid' => $pid, 'themeid' => $themeid]);
+		$res = Db::query($sql , ['user_id' => $user_id, 'themeid' => $themeid, 'level' => $level]);
 		
 		return $res;
 	}
 	
+//	public function get_position_tag_by_userid($user_id, $pid, $themeid){
+//		
+//		$sql = 'SELECT ti.tag_id,ti.name
+//				FROM user_tag ut INNER JOIN tag t ON ut.tag_id = t.tag_id 
+//								 LEFT JOIN tag_info AS ti ON t.tag_id = ti.tag_id
+//				WHERE ut.user_id = :user_id && t.themeid = :themeid && t.pid IN (SELECT tag_id as pid FROM tag WHERE pid = :pid && themeid = :themeid)';
+//		
+//		$res = Db::query( $sql, ['user_id' => $user_id, 'pid' => $pid, 'themeid' => $themeid]);
+//		return $res;
+//	}
 	
 }
 

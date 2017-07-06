@@ -39,12 +39,13 @@ class UserProjectTag extends Model{
 		$from = empty(input('from'))?0:input('from');
 		$page_size = empty(input('page_size'))?5:input('page_size');
 		
-		$sql = 'SELECT DISTINCT(upt.project_id),upt.create_time,
+		$sql = 'SELECT DISTINCT(upt.project_id),upt.tag_id duty_id,ti.name duty_name,upt.create_time,
 							p.name as project_name,p.cat_name,p.address,p.intro,p.collect_num,p.praise_num,p.project_start_time,p.project_end_time,
 							s.src_id project_src_id,s.access_url project_access_url
 				FROM user_project_tag AS upt LEFT JOIN project AS p ON upt.project_id = p.project_id && p.status != -1
 											 LEFT JOIN src_relation AS sr ON sr.relation_id = p.project_id && sr.type = 1
 											 LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 3
+											 LEFT JOIN tag_info AS ti ON upt.tag_id = ti.tag_id && upt.tag_id != 0
 				WHERE upt.user_id = :user_id && upt.user_type = 1 
 					ORDER BY upt.create_time DESC LIMIT '.$from.','.$page_size;
 		$res = Db::query($sql, ['user_id' => $user_id]);
@@ -58,7 +59,7 @@ class UserProjectTag extends Model{
 		
 		$sql = 'SELECT DISTINCT(upt.project_id),upt.user_id,p.name as project_name,p.type,p.status,p.intro,p.praise_num,u.name AS username,s.src_name,s.path,s.resource_path,s.access_url,s.source_url,s.url
 				FROM user as u LEFT JOIN user_project_tag as upt ON u.user_id = upt.user_id
-					LEFT JOIN project as p ON upt.project_id = p.project_id && p.status != -1
+					INNER JOIN project as p ON upt.project_id = p.project_id && p.status != -1
 					LEFT JOIN src_relation as sr ON p.project_id = sr.relation_id && sr.type = 1
 					LEFT JOIN src as s ON sr.src_id = s.src_id && s.type = 3
 				WHERE u.user_id = :user_id LIMIT '.$from.','.$page_size;

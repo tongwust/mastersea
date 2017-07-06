@@ -16,5 +16,7 @@ class Src extends Model{
 		$res = Db::query($sql, ['src_id'=>$src_id]);
 		return $res;
 	}
+	
+	
 }
 ?>

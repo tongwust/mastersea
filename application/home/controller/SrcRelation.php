@@ -60,6 +60,9 @@ class SrcRelation extends Controller{
 				$ret['msg'] = '添加成功';
 				$ret['src_id'] = $src->src_id;
 				$ret['src_name'] = $src->src_name;
+				session('userinfo.path', input('access_url'));
+				session('userinfo.resource_path', input('resource_path'));
+				session('userinfo.access_url', $src->path);
 			}catch( \Exception $e){
 				Db::rollback();
 				$ret['r'] = -2;
@@ -101,7 +104,7 @@ class SrcRelation extends Controller{
 			Db::startTrans();
 			try{
 				$src->src_delete_by_srcid();
-				$src_relation->src_relation_delete_by_srcid();
+				$src_relation->deleteHeadImgByUserid($user_id, $type);
 				Db::commit();
 			}catch( \Exception $e){
 				Db::rollback();

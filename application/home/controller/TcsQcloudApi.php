@@ -41,7 +41,7 @@ class TcsQcloudApi extends Controller{
 		$content = $project -> getAllProjectList();
 		$project_id_arr = array_column( $content, 'project_id');
 		$project_ids_str = implode( ',', $project_id_arr);
-		$tags = $user_project_tag -> getUserTags($project_ids_str);
+		$tags = ($project_ids_str == '')?[]:$user_project_tag -> getUserTags($project_ids_str);
 		$tag_names = [];
 		foreach( $tags as $val){
 			$tag_names[$val['project_id']] = isset($tag_names[$val['project_id']])?($tag_names[$val['project_id']].' '.$val['name']):$val['name'];
@@ -129,14 +129,14 @@ class TcsQcloudApi extends Controller{
 			return json_encode($ret);
 			exit;
 		}
-		if( !session('userinfo') ){
-			$ret['r'] = -100;
-			$ret['msg'] = '未登录';
-			return json_encode( $ret);
-			exit;
-		}else{
-			$user_id = session('userinfo')['user_id'];
-		}
+//		if( !session('userinfo') ){
+//			$ret['r'] = -100;
+//			$ret['msg'] = '未登录';
+//			return json_encode( $ret);
+//			exit;
+//		}else{
+//			$user_id = session('userinfo')['user_id'];
+//		}
 		$tag_id = input('tag_id');
 		$themeid = input('themeid');
 		if( !($tag_id > 0 && $themeid > 0) ){
