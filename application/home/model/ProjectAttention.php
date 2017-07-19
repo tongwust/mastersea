@@ -80,8 +80,8 @@ class ProjectAttention extends Model{
 		return $res;
 	}
 	public function getMyAttenProjectList($user_id){
-		$from = (input('from'))?input('from'):0;
-		$page_size = (input('page_size'))?input('page_size'):10;
+		$from = (input('from'))?intval(input('from')):0;
+		$page_size = (input('page_size'))?intval(input('page_size')):10;
 		
 		$sql = 'SELECT pa.project_id,p.name project_name,p.intro,p.project_start_time,p.project_end_time,p.praise_num,
 					   s.src_id project_src_id,s.access_url project_access_url

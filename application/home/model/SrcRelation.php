@@ -44,11 +44,11 @@ class SrcRelation extends Model{
 		return $res;
 	}
 	
-	public function deleteHeadImgByUserid($user_id, $type){
+	public function deleteHeadImgBySrcid($src_id){
 		$sql = 'DELETE
 				FROM src_relation
-				WHERE relation_id = :relation_id && type = :type';
-		$res = Db::query($sql, ['relation_id'=>$user_id,'type' => $type]);
+				WHERE src_id = :src_id';
+		$res = Db::query($sql, ['src_id'=>$src_id]);
 		
 		return $res;
 	}

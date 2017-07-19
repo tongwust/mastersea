@@ -22,8 +22,8 @@ class UserAttention extends Model{
 	}
 	
 	public function getAttenMeUserList( $user_id){
-		$from = input('from')?input('from'):0;
-		$page_size = input('page_size')?input('page_size'):35;
+		$from = input('from')?intval(input('from')):0;
+		$page_size = input('page_size')?intval(input('page_size')):35;
 		
 		$sql = 'SELECT DISTINCT(ua.user_id),u.name user_name,s.src_id user_src_id,s.access_url user_access_url
 				FROM user_attention AS ua LEFT JOIN user AS u ON ua.user_id = u.user_id
@@ -36,8 +36,8 @@ class UserAttention extends Model{
 		return $res;
 	}
 	public function getMyAttenUserList( $user_id){
-		$from = input('from')?input('from'):0;
-		$page_size = input('page_size')?input('page_size'):35;
+		$from = input('from')?intval(input('from')):0;
+		$page_size = input('page_size')?intval(input('page_size')):35;
 		
 		$sql = 'SELECT ua.follow_user_id user_id,u.name user_name,s.src_id user_src_id,s.access_url user_access_url
 				FROM user_attention AS ua LEFT JOIN user AS u ON ua.follow_user_id = u.user_id
@@ -49,9 +49,8 @@ class UserAttention extends Model{
 		
 		return $res;
 	}
-	public function get_follow_users_by_id(){
+	public function get_follow_users_by_id($follow_user_id){
 		
-		$follow_user_id = input('user_id');
 		$sql = 'SELECT user_id
 				FROM user_attention
 				WHERE follow_user_id=:follow_user_id';
@@ -59,11 +58,19 @@ class UserAttention extends Model{
 		
 		return $res;
 	}
-	public function getMyAttenUsersByUserId(){
-		$sql = 'SELECT user_id
+	public function getUserAttenId($user_id, $follow_user_id, $relation_type){
+		$sql = 'SELECT user_attention_id
 				FROM user_attention
-				WHERE follow_user_id = :follow_user_id';
-		$res = Db::query( $sql, ['follow_user_id' => input('user_id')]);
+				WHERE user_id = :user_id && follow_user_id = :follow_user_id && relation_type = :relation_type';
+		$res = Db::query($sql, ['user_id'=>$user_id, 'follow_user_id'=> $follow_user_id,'relation_type' => $relation_type]);
+		
+		return $res;
+	}
+	public function getMyAttenUsersByUserId($user_id){
+		$sql = 'SELECT follow_user_id
+				FROM user_attention
+				WHERE user_id = :user_id';
+		$res = Db::query( $sql, ['user_id' => $user_id]);
 		
 		return $res;
 	}
@@ -75,6 +82,14 @@ class UserAttention extends Model{
 		
 		$res = Db::query( $sql);
 		return $res;
+	}
+	public function getWeAttenUsers($user_ids_str){
+		$sql = 'SELECT user_id,follow_user_id
+				FROM user_attention
+				WHERE user_id in ('.$user_ids_str.') ORDER BY user_id ASC';
+		$res = Db::query($sql);
+		
+		return $res;		
 	}
 	public function getMyFriends( $follow_user_id){
 		$sql = 'SELECT a.user_id,u.name username

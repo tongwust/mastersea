@@ -39,7 +39,14 @@ class UserAttention extends Controller{
 			exit;
 		}
 		$user_attention = model('UserAttention');
-		$user_attention -> data( ['user_id' => $user_id, 'follow_user_id' => $follow_user_id, 'relation_type' => (empty(input('relation_type'))?1:input('relation_type'))])->save();
+		$relation_type = empty(input('relation_type'))?1:input('relation_type');
+		if( count( $user_attention -> getUserAttenId( $user_id, $follow_user_id, $relation_type)) > 0){
+			$ret['r'] = -4;
+			$ret['msg'] = '已存在关注记录';
+			return json_encode($ret);
+			exit;
+		}
+		$user_attention -> data( ['user_id' => $user_id, 'follow_user_id' => $follow_user_id, 'relation_type' =>$relation_type ])->save();
 		
 		$ret['user_attention_id'] = $user_attention -> user_attention_id;
 		return json_encode( $ret );
@@ -75,6 +82,12 @@ class UserAttention extends Controller{
 			exit;
 		}
 		$user_attention = model('UserAttention');
+		if( count( $user_attention -> getUserAttenId( $user_id, $follow_user_id, $relation_type)) == 0){
+			$ret['r'] = -4;
+			$ret['msg'] = '未存在关注记录';
+			return json_encode($ret);
+			exit;
+		}
 		$user_attention -> destroy(['user_id' => $user_id, 'follow_user_id' => $follow_user_id,'relation_type' => $relation_type]);
 		
 		return json_encode( $ret );

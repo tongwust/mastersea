@@ -27,8 +27,8 @@ class Project extends Controller{
 			exit;
 		}
 		$user_id = input('user_id');
-		$from = empty(input('from'))?0:input('from');
-		$page_size = empty(input('page_size'))?10:input('page_size');
+		$from = empty(input('from'))?0:intval(input('from'));
+		$page_size = empty(input('page_size'))?10:intval(input('page_size'));
 		if( !session('userinfo') ){
 			$ret['r'] = -100;
 			$ret['msg'] = '未登录';
@@ -299,12 +299,16 @@ class Project extends Controller{
 			
 			$user_type_arr = $user_project_tag->getMemberType();
 			$flag = false;
-			foreach( $user_type_arr as $v){
-				if( $v['user_type'] == 1){
-					$flag = true;	break;
+			if( $opt_id != $user_id){
+				foreach( $user_type_arr as $v){
+					if( $v['user_type'] == 1){
+						$flag = true;	break;
+					}
 				}
+			}else{
+				$flag = (count($user_type_arr) > 0);
 			}
-			if( $flag ){//1.负责人
+			if( $flag ){//1.负责人 or myself
 				Db::startTrans();
 				try{
 					$user_project_tag -> deleteMemberFromProject();
@@ -318,7 +322,7 @@ class Project extends Controller{
 				}
 			}else{
 				$ret['r'] = -2;
-				$ret['msg'] = '操作人不是负责人';
+				$ret['msg'] = '操作人不是负责人或自己退出';
 			}
 		}else{
 			$ret['r'] = -1;
@@ -345,14 +349,14 @@ class Project extends Controller{
 			exit;
 		}
 		$user_id = session('userinfo')['user_id'];//$user_id=5;
-		$sig_arr = convertUrlQuery(base64_decode( input('sig') ));
-		if( !(isset($sig_arr['project_id']) && $sig_arr['project_id'] > 0 && isset($sig_arr['charge_user_id']) && $sig_arr['charge_user_id'] > 0 && isset($sig_arr['user_id']) && $sig_arr['user_id'] > 0 && $user_id == $sig_arr['user_id'] ) ){
+		$sig_arr = convertUrlQuery(base64_decode( input('sig') ));//dump($sig_arr);exit;
+		if( !(isset($sig_arr['project_id']) && $sig_arr['project_id'] > 0 && isset($sig_arr['charge_user_id']) && $sig_arr['charge_user_id'] > 0 && isset($sig_arr['user_id']) && $sig_arr['user_id'] > 0 ) ){
 			$ret['r'] = -1;
 			$ret['msg'] = 'sig参数格式不符';
 			return json_encode($ret);
 			exit;
 		}
-		$user_project_tag = model('UserProjectTag');dump($sig_arr);
+		$user_project_tag = model('UserProjectTag');//dump($sig_arr);
 		$res = $user_project_tag -> getMemberTag( $sig_arr['project_id'], $sig_arr['user_id']);
 		if(count($res) > 0){
 			$ret['r'] = -2;
@@ -436,6 +440,7 @@ class Project extends Controller{
 		return json_encode($ret);
 	}
 	public function get_search_project_ids(){
+		
 		$ret = [
 			"r" => 0,
 			"msg" => '获取成功',
@@ -582,7 +587,31 @@ class Project extends Controller{
 		}
 		return json_encode( $ret );
 	}
-	
+	//项目的部分信息
+	public function get_project_part_info(){
+		$ret = [
+			'r' => 0,
+			'msg' => '查询成功',
+		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		$project_id = input('project_id');
+		if($project_id <= 0){
+			$ret['r'] = -1;
+			$ret['msg'] = '参数不符';
+			return json_encode($ret);
+			exit;
+		}
+		$project = model('Project');
+		$res = $project -> getProjectPartInfo();
+		$ret['project'] = (count($res) > 0)?$res[0]:[];
+		return json_encode($ret);
+	}
 	public function update_project_baseinfo(){
 		$ret = [
 			'r' => 0,

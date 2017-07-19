@@ -43,8 +43,8 @@ class Project extends Model{
 		return $res;
 	}
 	public function get_latest_hot_project(){
-		$from = empty(input('from'))?0:input('from');
-		$page_size = empty(input('page_size'))?10:input('page_size');
+		$from = empty(input('from'))?0:intval(input('from'));
+		$page_size = empty(input('page_size'))?10:intval(input('page_size'));
 		
 		$sql = 'SELECT p.project_id,p.name,p.type,p.status,p.praise_num,p.collect_num,p.intro,s.src_name as project_img,s.path as project_path,s.access_url as project_access_url
 				FROM project AS p LEFT JOIN src_relation sr ON p.project_id = sr.relation_id && sr.type = 1
@@ -64,8 +64,8 @@ class Project extends Model{
 		return $res;
 	}
 	public function getSearchProjects( $project_ids_str ){
-		$from = empty(input('from'))?0:input('from');
-		$page_size = empty(input('page_size'))?10:input('page_size');
+		$from = empty(input('from'))?0:intval(input('from'));
+		$page_size = empty(input('page_size'))?10:intval(input('page_size'));
 		
 		$sql = 'SELECT p.project_id,p.name,p.type,p.status,p.praise_num,p.collect_num,p.intro,s.src_name as project_img,s.path as project_path,s.access_url project_access_url
 				FROM project AS p LEFT JOIN src_relation sr ON p.project_id = sr.relation_id && sr.type = 1

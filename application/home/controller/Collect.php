@@ -23,8 +23,8 @@ class Collect extends Controller{
 			exit;
 		}
 //		$user_id = input('user_id');
-		$from = empty(input('from'))?0:input('from');
-		$page_size = empty(input('page_size'))?10:input('page_size');
+		$from = empty(input('from'))?0:intval(input('from'));
+		$page_size = empty(input('page_size'))?10:intval(input('page_size'));
 		
 		if( !session('userinfo') ){
 			$ret['r'] = -100;
@@ -106,11 +106,18 @@ class Collect extends Controller{
 			return json_encode( $ret );
 			exit;
 		}
+		$collect = model('Collect');
+		$project = model('Project');
+		$task = model('Task');
+		if( count($collect -> getCollectId( $cid, $user_id, $type)) > 0){
+			$ret['r'] = -4;
+			$ret['msg'] = '已有收藏记录';
+			return json_encode($ret);
+			exit;
+		}
 		Db::startTrans();
 		try{
-			$collect = model('Collect');
-			$project = model('Project');
-			$task = model('Task');
+			
 			if( $type == 1){
 				$res = $project -> where('project_id', input('cid'))->setInc('collect_num');
 			}else{
@@ -158,12 +165,17 @@ class Collect extends Controller{
 			return json_encode( $ret );
 			exit;
 		}
+		$collect = model('Collect');
+		$project = model('Project');
+		$task = model('Task');
+		if( count($collect -> getCollectId( $cid, $user_id, $type)) == 0){
+			$ret['r'] = -4;
+			$ret['msg'] = '未有收藏记录';
+			return json_encode($ret);
+			exit;
+		}
 		Db::startTrans();
 		try{
-			$collect = model('Collect');
-			$project = model('Project');
-			$task = model('Task');
-			
 			if( $type == 1){
 				$res = $project -> where('project_id', input('cid'))->where('collect_num', '>', 0)->setDec('collect_num');
 			}else{

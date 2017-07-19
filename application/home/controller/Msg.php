@@ -47,23 +47,36 @@ class Msg extends Controller{
 			return json_encode($ret);
 			exit;
 		}
-		$send_user_id = session('userinfo')['user_id'];
+//		$send_user_id = session('userinfo')['user_id'];
 		$send_user_id = input('send_user_id');
 //		$send_user_id = 3;//test
 		$receive_user_id = input('receive_user_id');
+		$receive_user_name = input('receive_user_name');
 		$msg_content = trim( input('msg_content'));
 		$type = input('type')?input('type'):1;
-		if($send_user_id <= 0 || $receive_user_id <= 0 || empty($msg_content)){
+		if($send_user_id <= 0 || ($receive_user_id <= 0 && $receive_user_name == '') || empty($msg_content)){
 			$ret['r'] = -1;
 			$ret['msg'] = '参数不符';
 			return json_encode($ret);
 			exit;
 		}
-		if( $type == 2 ){
+		if( $type == 2 || $type == 3 || $type == 4 || $type == 5 || $type == 6){
 			$msg_arr = convertUrlQuery( base64_decode($msg_content) );
 			if( !(isset($msg_arr['project_id']) && isset($msg_arr['charge_user_id']) && isset($msg_arr['user_id'])) ){
 				$ret['r'] = -1;
 				$ret['msg'] = 'msg_content参数格式不符';
+				return json_encode($ret);
+				exit;
+			}
+		}
+		if($receive_user_id <= 0 && $receive_user_name != ''){
+			$user = model('User');
+			$res = $user -> check_name( $receive_user_name );
+			if($res && count($res) > 0){
+				$receive_user_id = $res[0]['user_id'];
+			}else{
+				$ret['r'] = -3;
+				$ret['msg'] = '用户名不存在';
 				return json_encode($ret);
 				exit;
 			}
@@ -122,7 +135,7 @@ class Msg extends Controller{
 		$text_arr = [];
 		foreach( $msgs as $k => &$v){
 			$v['send_user_id'] = $send_user_id;
-			if( $v['type'] == 2){
+			if(  $v['type'] == 2 || $v['type'] == 3 || $v['type'] == 4 || $v['type'] == 5 || $v['type'] == 6){
 				$msg_arr = convertUrlQuery( base64_decode($v['msg_content']) );
 				if( !(isset($msg_arr['project_id']) && isset($msg_arr['charge_user_id']) && isset($msg_arr['user_id'])) ){
 					$ret['r'] = -3;
@@ -203,7 +216,7 @@ class Msg extends Controller{
 			exit;
 		}
 		$user_id = session('userinfo')['user_id'];
-//		$user_id = 3;
+//		$user_id = input('user_id');
 		$msg = model('Msg');
 		
 		$res = $msg -> getMyReceiveMsgs( $user_id );
@@ -281,14 +294,15 @@ class Msg extends Controller{
 		$send_user_id = input('send_user_id');
 		$receive_user_id = input('receive_user_id');
 		$msg_id = input('msg_id');
-		if( $send_user_id <= 0 || $receive_user_id <= 0 || $msg_id <= 0){
+		$status = input('status');
+		if( $send_user_id <= 0 || $receive_user_id <= 0 || $msg_id <= 0 || ($status <= 0 || $status > 3)){
 			$ret['r'] = -1;
 			$ret['msg'] = '参数不符';
 			return json_encode($ret);
 			exit;
 		}
 		$msg = model('Msg');
-		$res = $msg -> changeSingleMsgStatus();
+		$res = $msg -> changeSingleMsgStatus($send_user_id,$receive_user_id,$msg_id,$status);
 		
 		return json_encode($ret);
 	}

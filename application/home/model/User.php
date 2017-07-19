@@ -7,13 +7,13 @@ class User extends Model{
 	
 	protected $table = 'user';
 	
-	public function check_name(){
-		$name = input('name');
+	public function check_name( $name){
+		
 		$res = Db::query('select user_id 
     							from user
     							where name=:name',
     							['name'=>$name]);
-    	return count($res);
+    	return $res;
 	}
 	
 	public function get_user_info_by_name_pwd(){

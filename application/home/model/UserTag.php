@@ -48,7 +48,16 @@ class UserTag extends Model{
 		
 		return $res;
 	}
-	
+	public function hotTags( $themeid, $page_size){
+		
+		$sql = 'SELECT count(ut.tag_id) as num,ti.tag_id,ti.name
+				FROM user_tag AS ut INNER JOIN tag AS t ON ut.tag_id = t.tag_id && t.themeid = :themeid
+									LEFT JOIN tag_info AS ti ON t.tag_id = ti.tag_id
+				GROUP BY ut.tag_id ORDER BY num DESC LIMIT '.$page_size;
+		$res = Db::query( $sql, ['themeid' => $themeid]);
+		
+		return $res;
+	}
 //	public function get_position_tag_by_userid($user_id, $pid, $themeid){
 //		
 //		$sql = 'SELECT ti.tag_id,ti.name

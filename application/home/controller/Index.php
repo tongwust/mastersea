@@ -8,7 +8,7 @@ use think\Cache;
 use think\Config;
 use think\Loader;
 use think\Log;
-
+use other\Captcha;
 use sms\SmsSingleSender;
 
 class Index extends Controller
@@ -17,9 +17,137 @@ class Index extends Controller
     	$view = new View();
     	return $view->fetch('./index');
     }
+    public function test($id = ''){
+    	
+		$captcha = new Captcha((array)Config::get('captcha'));
+        
+        return $captcha->entry( $id);
+    }
+    public function check_img_code(){
+    	$ret = [
+			'r' => 0,
+			'msg' => '验证成功',
+		];
+		$encrypt = new Encrypt;
+		$token = input('token');
+		if( $encrypt -> token_decode($token) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		$captcha = new Captcha((array)Config::get('captcha'));
+		if( !$captcha->check(input('code'), $token) ){
+			$ret['r'] = -1;
+			$ret['msg'] = '验证码不正确';
+		}
+//  	if( strtolower(input('code')) != strtolower(cache($token)) ){
+//  		$ret['r'] = -1;
+//  		$ret['msg'] = '验证码不正确';
+//  	}
+    	return json_encode( $ret);
+    }
+    public function generate_check_code_img(){
+    	$ret = [
+			'r' => 0,
+			'msg' => '',
+			'data' => '',
+			'sessid' => '',
+		];
+    	$token = input('token');
+    	$captcha = new Captcha((array)Config::get('captcha'));
+        
+        $ret['data'] = $captcha->entry( $token);
+    	
+    	$ret['sessid'] = session_id();
+    	return json_encode( $ret);
+//  	session_start();
+//		$checkCode = '';
+//		$chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPRSTUVWXYZ23456789'; 
+//		for($i = 0; $i < 4; $i++){
+//			
+//			$checkCode .= substr( $chars, mt_rand(0,strlen($chars)-1), 1); 
+//		}
+//		$_SESSION['code']=strtoupper( $checkCode);// 记录session
+//		cache( $token, $checkCode, 10*60);
+//		$this -> ImageCode( $checkCode, 60);// 显示GIF动画
+//		return json_encode( $ret);
+    }
+/** 
+*ImageCode 生成包含验证码的GIF图片的函数 
+*@param $string 字符串 
+*@param $width 宽度 
+*@param $height 高度 
+**/
+public function ImageCode($string='',$width=75,$height=25){ 
+ 	$authstr=$string?$string:((time()%2==0)?mt_rand(1000,9999):mt_rand(10000,99999)); 
+  	$board_width=$width; 
+  	$board_height=$height; 
+  	// 生成一个32帧的GIF动画 
+  	for($i=0;$i<32;$i++){
+    	ob_start(); 
+    	$image=imagecreate($board_width,$board_height); 
+    	imagecolorallocate($image,0,0,0); 
+	    // 设定文字颜色数组 
+	    $colorList[]=ImageColorAllocate($image,15,73,210); 
+	    $colorList[]=ImageColorAllocate($image,0,64,0); 
+	    $colorList[]=ImageColorAllocate($image,0,0,64); 
+	    $colorList[]=ImageColorAllocate($image,0,128,128); 
+	    $colorList[]=ImageColorAllocate($image,27,52,47); 
+	    $colorList[]=ImageColorAllocate($image,51,0,102); 
+	    $colorList[]=ImageColorAllocate($image,0,0,145); 
+	    $colorList[]=ImageColorAllocate($image,0,0,113); 
+	    $colorList[]=ImageColorAllocate($image,0,51,51); 
+	    $colorList[]=ImageColorAllocate($image,158,180,35); 
+	    $colorList[]=ImageColorAllocate($image,59,59,59); 
+	    $colorList[]=ImageColorAllocate($image,0,0,0); 
+	    $colorList[]=ImageColorAllocate($image,1,128,180); 
+	    $colorList[]=ImageColorAllocate($image,0,153,51); 
+	    $colorList[]=ImageColorAllocate($image,60,131,1); 
+	    $colorList[]=ImageColorAllocate($image,0,0,0); 
+	    $fontcolor=ImageColorAllocate($image,0,0,0); 
+	    $gray=ImageColorAllocate($image,245,245,245); 
+	    $color=imagecolorallocate($image,255,255,255); 
+	    $color2=imagecolorallocate($image,255,0,0); 
+	    imagefill($image,0,0,$gray); 
+	    $space=15;// 字符间距 
+	    if($i>0){// 屏蔽第一帧 
+	      $top=0; 
+	      for($k=0;$k<strlen($authstr);$k++){ 
+	        $colorRandom=mt_rand(0,sizeof($colorList)-1); 
+	        $float_top=rand(0,4); 
+	        $float_left=rand(0,3); 
+	        imagestring($image,6,$space*$k,$top+$float_top,substr($authstr,$k,1),$colorList[$colorRandom]); 
+	      } 
+	    } 
+	    for($k=0;$k<20;$k++){ 
+	      	$colorRandom=mt_rand(0,sizeof($colorList)-1); 
+	     	imagesetpixel($image,rand()%70,rand()%15,$colorList[$colorRandom]); 
+	    
+	    } 
+	    // 添加干扰线 
+	    for($k=0;$k<3;$k++){ 
+	      $colorRandom=mt_rand(0,sizeof($colorList)-1); 
+	      $todrawline=1; 
+	      if($todrawline){ 
+	        imageline($image,mt_rand(0,$board_width),mt_rand(0,$board_height),mt_rand(0,$board_width),mt_rand(0,$board_height),$colorList[$colorRandom]); 
+	      }else{ 
+	        $w=mt_rand(0,$board_width); 
+	        $h=mt_rand(0,$board_width); 
+	        imagearc($image,$board_width-floor($w / 2),floor($h / 2),$w,$h, rand(90,180),rand(180,270),$colorList[$colorRandom]); 
+	      } 
+	    } 
+	    imagegif($image); 
+	    imagedestroy($image); 
+	    $imagedata[]=ob_get_contents(); 
+	    ob_clean(); 
+	    ++$i; 
+	}
+	$gif = new GIFEncoder($imagedata);
+	Header('Content-type:image/gif');
+	echo base64_encode( $gif->GetAnimation());
+}
     public function check_username(){
-    	header("Access-Control-Allow-Origin:*");
-    	header("Access-Control-Allow-Method:POST,GET");
     	$ret = [
 			'r' => -1,
 			'msg' => '',
@@ -32,7 +160,12 @@ class Index extends Controller
 			exit;
 		}
 		$user = model('User');
-		if($user->check_name() > 0){
+		if( $input('name') == ''){
+			$ret['msg'] = '用户名不能为空';
+			return json_encode($ret);
+			exit;
+		}
+		if(count($user->check_name($input('name'))) > 0){
 			$ret['r'] = 0;
 			$ret['msg'] = '用户名已存在';
 		}else{
@@ -42,8 +175,6 @@ class Index extends Controller
 		exit;
     }
     public function send_msg(){
-    	header("Access-Control-Allow-Origin:*"); 
-    	header("Access-Control-Allow-Method:POST,GET");
     	$ret = [
 			'r' => -1,
 			'msg' => '',
@@ -63,6 +194,12 @@ class Index extends Controller
 			return json_encode($ret);
 			exit;
 		}
+		if( cache($mobile) ){
+			$ret['r'] = -5;
+			$ret['msg'] = '手机号'.$mobile.'间隔60s才能再发送，请勿频繁操作';
+			return json_encode($ret);
+			exit;
+		}
 		try{
 			$appid = 1400028629;
 			$appkey = 'ac63e8e5a3ee3982de81c35bc6fcf1d6';
@@ -78,22 +215,17 @@ class Index extends Controller
 				cache( $mobile, $code, 60);
 				$ret['r'] = 0;
 				$ret['msg'] = '发送成功';
-				return json_encode($ret);
-				exit;
 			}else{
 				$ret['msg'] = '发送短信失败';
-				return json_encode($ret);
-				exit;
 			}
 		}catch(\Exception $e){
 			$ret['msg'] = '发送短信出错'.$e;
-			return json_encode($ret);
-			exit;
 		}
+		return json_encode($ret);
     }
+    
     public function check_code(){
-    	header("Access-Control-Allow-Origin:*"); 
-    	header("Access-Control-Allow-Method:POST,GET");
+
     	$ret = [
 			'r' => -1,
 			'msg' => '',
@@ -116,11 +248,16 @@ class Index extends Controller
     	return json_encode($ret);
     }
 	public function register(){
-		header("Access-Control-Allow-Origin:*"); 
-    	header("Access-Control-Allow-Method:POST,GET");
 		$ret = [
 			'r' => -1,
 			'msg' => '',
+			'PHPSESSID' => '',
+			'user_id' => '',
+			'name' => '',
+			'sex' => '',
+			'path' => '',
+			'resource_path' => '',
+			'access_url' => '',
 		];
 		$encrypt = new Encrypt;
 		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
@@ -134,6 +271,7 @@ class Index extends Controller
 		$pwd = trim(input('pwd'));
 		$repwd = trim(input('repwd'));
 		$mobile = trim(input('mobile'));
+		$email = trim(input('email'));
 		$position = json_decode(trim(input('position')), true);
 		$skill = json_decode(trim(input('skill')), true);
 		$concern = json_decode(trim(input('concern')), true);
@@ -150,7 +288,7 @@ class Index extends Controller
 			return json_encode($ret);
 			exit;
 		}
-		if($user->check_name() > 0){
+		if(count($user->check_name( $name)) > 0){
 			$ret['r'] = -2;
 			$ret['msg'] = '用户名已存在';
 			return json_encode($ret);
@@ -160,7 +298,13 @@ class Index extends Controller
 		$pattern_mobile = '/^1[3|4|5|8][0-9]\d{8}$/';
 		if(!preg_match( $pattern_mobile, $mobile)){
 		    $ret['r'] = -4;
-			$ret['msg'] = '格式错误';
+			$ret['msg'] = '手机号格式错误';
+			return json_encode($ret);
+			exit;
+		}
+		if(!preg_match( $pattern_email, $email)){
+		    $ret['r'] = -4;
+			$ret['msg'] = '邮件格式错误';
 			return json_encode($ret);
 			exit;
 		}
@@ -173,14 +317,18 @@ class Index extends Controller
 		$user_tag = model('UserTag');
 		$tag = new Tag;
 		
-		$user_contact->contact = $mobile;
-		$user_contact->type = 1;
+//		$user_contact->contact = $mobile;
+//		$user_contact->type = 1;
+		
 		Db::startTrans();
 		try{
 			$user->save();
-			$user_contact->user_id = $user->user_id;
+//			$user_contact->user_id = $user->user_id;
+			$contact_arr = [['contact'=>$mobile,'type'=>1,'user_id'=>$user->user_id],['contact'=>$email,'type'=>2,'user_id'=>$user->user_id]];
 			$user_info->user_id = $user->user_id;
-			$user_contact->save();
+//			$user_contact->save();
+			$user_contact->saveAll($contact_arr);
+			
 			$user_info->save();
 			if( count( $position) > 0){
 				$position_list = [];
@@ -247,12 +395,31 @@ class Index extends Controller
 			$ret['msg'] = '数据库错误!'.$e;
 			exit;
 		}
+		$session_config = [
+		    'prefix'     => 'think',
+		    'type'       => '',
+		    'auto_start' => true,
+		    'expire'	 => 3*3600,
+		    'use_cookies'=> true,
+		];
+		session($session_config);
+		$ret['PHPSESSID'] = session_id();
+		session('userinfo.user_id',$user->user_id);
+		session('userinfo.name',$name);
+		session('userinfo.sex', 1);//default
+//		session('userinfo.path', '');
+//		session('userinfo.resource_path', '');
+//		session('userinfo.access_url', '');
+		$ret['user_id'] = $user -> user_id;
+		$ret['name'] = $name;
+		
+		$subject= $name.' 注册成功';
+        $content = '欢迎加入shining.me';
+		send_mail( $email, $name, $subject, $content);
 		return json_encode($ret);
 		//$this->email($user->name,$contract->email,md5($user->name.$user->pwd.$user->user_id),$user->user_id);
 	}
 	public function user_login(){
-		header("Access-Control-Allow-Origin:*"); 
-    	header("Access-Control-Allow-Method:POST,GET");
 		$ret = [
 			'r' => -1,
 			'msg' => '',
@@ -281,7 +448,7 @@ class Index extends Controller
 			    'prefix'     => 'think',
 			    'type'       => '',
 			    'auto_start' => true,
-			    'expire'	 => 3600,
+			    'expire'	 => 3*3600,
 			    'use_cookies'=> true,
 			];
 			if($is_rember == 1)	$session_config['expire'] = 7*24*3600;
@@ -294,9 +461,9 @@ class Index extends Controller
 			session('userinfo.user_id',$res[0]['user_id']);
 			session('userinfo.name',$res[0]['name']);
 			session('userinfo.sex', $res[0]['sex']);
-			session('userinfo.path', $res[0]['access_url']);
-			session('userinfo.resource_path', $res[0]['resource_path']);
-			session('userinfo.access_url', $res[0]['path']);
+//			session('userinfo.access_url', $res[0]['access_url']);
+//			session('userinfo.resource_path', $res[0]['resource_path']);
+//			session('userinfo.path', $res[0]['path']);
 			
 			$ret = array_merge( $ret, $res[0] );
 //			$expire = ($is_rember == 1)?7*24*3600:2*3600;
@@ -312,8 +479,7 @@ class Index extends Controller
 	}
 	
 	public function user_logout(){
-		header("Access-Control-Allow-Origin:*");
-    	header("Access-Control-Allow-Method:POST,GET");
+
 		$ret = [
 			'r' => -1,
 			'msg' => '',
@@ -325,15 +491,14 @@ class Index extends Controller
 			return json_encode($ret);
 			exit;
 		}
-		cache(session('user.user_id'), NULL);
-		session('user', NULL);
+//		cache(session('userinfo.user_id'), NULL);
+		session('userinfo', NULL);
 		$ret['r'] = 0;
 		return json_encode($ret);
 	}
 	
 	public function change_user_status(){
-		header("Access-Control-Allow-Origin:*"); 
-    	header("Access-Control-Allow-Method:POST,GET");
+
 		$str = input('str');
 		$user_id = input('id');
 		if($str == '' || $user_id){

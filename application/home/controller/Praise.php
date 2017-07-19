@@ -38,11 +38,18 @@ class Praise extends Controller{
 			return json_encode( $ret );
 			exit;
 		}
+		$praise = model('Praise');
+		$project = model('Project');
+		$task = model('Task');
+		if( count($praise -> getPraiseId( $cid, $user_id, $type)) > 0 ){
+			$ret['r'] = -4;
+			$ret['msg'] = '用户已有点赞记录';
+			return json_encode($ret);
+			exit;
+		}
 		Db::startTrans();
 		try{
-			$praise = model('Praise');
-			$project = model('Project');
-			$task = model('Task');
+			
 			//后续记录到cache
 			if( $type == 1){
 				$res = $project -> where('project_id', input('cid'))->setInc('praise_num');
@@ -95,6 +102,12 @@ class Praise extends Controller{
 		$praise = model('Praise');
 		$project = model('Project');
 		$task = model('Task');
+		if( count($praise -> getPraiseId( $cid, $user_id, $type)) == 0 ){
+			$ret['r'] = -4;
+			$ret['msg'] = '用户未有点赞记录';
+			return json_encode($ret);
+			exit;
+		}
 		Db::startTrans();
 		try{
 			

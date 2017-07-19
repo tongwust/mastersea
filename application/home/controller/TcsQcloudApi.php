@@ -184,8 +184,8 @@ class TcsQcloudApi extends Controller{
 			return json_encode( $ret );
 			exit;
 		}
-		$from = empty(input('from'))?0:input('from');
-		$num_per_page = empty(input('page_size'))?10:input('page_size');
+		$from = empty(input('from'))?0:intval(input('from'));
+		$num_per_page = empty(input('page_size'))?10:intval(input('page_size'));
 		$page_id = floor($from / $num_per_page);
 		$COMMON_PARAMS = array(
 	        'Nonce' => rand(),

@@ -97,19 +97,19 @@ class SrcRelation extends Controller{
 			$user_id = session('userinfo')['user_id'];
 		}
 		$src_id = input('src_id');
-		if( $src_id > 0 && $user_id > 0 ){
+		if( $src_id > 0 ){
 			$src = model('Src');
 			$src_relation = model('SrcRelation');
 			
 			Db::startTrans();
 			try{
 				$src->src_delete_by_srcid();
-				$src_relation->deleteHeadImgByUserid($user_id, $type);
+				$src_relation->deleteHeadImgBySrcid( $src_id);
 				Db::commit();
 			}catch( \Exception $e){
 				Db::rollback();
 				$ret['r'] = -2;
-				$ret['msg'] = '删除数据失败';
+				$ret['msg'] = '删除数据失败'.$e->getMessage();
 			}
 		}else{
 			$ret['r'] = -1;

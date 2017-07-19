@@ -226,6 +226,94 @@ class UserInfo extends Controller
     	$ret['uinfo'] = $res;
     	return json_encode( $ret);
     }
+        public function get_my_join_project_member_list(){
+    	$ret = [
+    		'r' => 0,
+    		'msg' => '查询成功',
+    		'uinfo' => [],
+    	];
+    	$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+//  	if( !session('userinfo') ){
+//  		$ret['r'] = -100;
+//  		$ret['msg'] = '请登录';
+//  		return json_encode( $ret );
+//  		exit;
+//  	}
+//  	$user_id = session('userinfo')['user_id'];
+//  	$user_id = 3;
+		$user_id = input('user_id');
+    	if( $user_id <= 0){
+    		$ret['r'] = -1;
+    		$ret['msg'] = 'user_id参数不符合要求';
+    		return json_encode($ret);
+    		exit;
+    	}
+    	$user_attention = model('UserAttention');
+    	$user_project_tag = model('UserProjectTag');
+    	$user_tag = model('UserTag');
+    	$from = (input('from') >= 0)?intval(input('from')):0;
+    	$page_size = (input('page_size') > 0)?intval(input('page_size')):35;
+//  	$res = $user_attention -> getMyAttenUserList($user_id);
+		$res = $user_project_tag -> getMyJoinProjectMembers($user_id, $from, $page_size);
+    	$my_atten_list = $user_attention -> getMyAttenUsersByUserId( $user_id );
+    	
+    	$my_atten_arr = array_column($my_atten_list,'follow_user_id');
+    	$user_ids_str = implode(',',array_column( $res, 'user_id'));
+    	$project_num_arr = ($user_ids_str == '')?[]:$user_project_tag -> getProjectNumByUserids($user_ids_str);
+		$arr = [];
+		foreach($project_num_arr as $v){
+			$arr[$v['project_id']] = $v['user_id'];
+		}
+		$arr = array_count_values( $arr );
+		$tags = ($user_ids_str == '')?[]:$user_tag -> getTagsByUserIds($user_ids_str);
+    	$atten_num_arr = ($user_ids_str == '')?[]:$user_attention -> getAttenNumByUserids($user_ids_str);
+		$atten_arr = [];
+		foreach( $atten_num_arr as $a){
+			$atten_arr[$a['follow_user_id']] = $a['atten_num'];
+		}
+		$project_src = ($user_ids_str == '')?[]:$user_project_tag -> getProjectCoverByUserids($user_ids_str);
+		$we_atten_list = ($user_ids_str == '')?[]:$user_attention -> getWeAttenUsers($user_ids_str);
+//		dump($we_atten_list);
+    	foreach($res as &$v){
+    		$v['tags'] = [];
+    		$v['is_atten'] = in_array($v['user_id'], $my_atten_arr)?1:0;
+    		$v['is_by_atten'] = 0;
+    		
+			foreach($we_atten_list as $w){
+				if( $v['user_id'] == $w['user_id'] && $user_id == $w['follow_user_id']){
+					$v['is_by_atten'] = 1;
+				}
+			}
+    		
+    		foreach($tags as $p){
+    			if($v['user_id'] == $p['user_id']){
+    				if($p['tag_id'] > 0){
+    					array_push($v['tags'],['tag_id' => $p['tag_id'],'tag_name'=>$p['tag_name']]);
+    				}
+    			}
+    		}
+    		$v['project_num'] = isset($arr[$v['user_id']])?$arr[$v['user_id']]:0;
+    		$v['atten_num'] = isset($atten_arr[$v['user_id']])?$atten_arr[$v['user_id']]:0;
+    		foreach($project_src as $ps){
+    			if( $v['user_id'] == $ps['user_id']){
+    				$v['project_id'] = $ps['project_id'];
+    				$v['project_src_id'] = $ps['project_src_id'];
+    				$v['project_access_url'] = $ps['project_access_url'];
+    				break;
+    			}
+    		}
+    	}
+//  	dump($res);
+    	$ret['uinfo'] = $res;
+    	return json_encode( $ret);
+    }
+    
     public function get_my_project_list(){
     	$ret = [
     		'r' => 0,
@@ -239,14 +327,20 @@ class UserInfo extends Controller
 			return json_encode($ret);
 			exit;
 		}
-    	if( !session('userinfo') ){
-    		$ret['r'] = -100;
-    		$ret['msg'] = '请登录';
+//  	if( !session('userinfo') ){
+//  		$ret['r'] = -100;
+//  		$ret['msg'] = '请登录';
+//  		return json_encode($ret);
+//  		exit;
+//  	}
+//  	$user_id = session('userinfo')['user_id'];
+    	$user_id = input('user_id');
+    	if( $user_id <= 0){
+    		$ret['r'] = -1;
+    		$ret['msg'] = 'user_id参数不符合要求';
     		return json_encode($ret);
     		exit;
     	}
-    	$user_id = session('userinfo')['user_id'];
-//  	$user_id = 3;
     	$user_project_tag = model('UserProjectTag');
     	$project_task_user = model('ProjectTaskUser');
     	$project_tag = model('ProjectTag');
@@ -291,14 +385,21 @@ class UserInfo extends Controller
 			return json_encode($ret);
 			exit;
 		}
-    	if( !session('userinfo') ){
-    		$ret['r'] = -100;
-    		$ret['msg'] = '请登录';
+//  	if( !session('userinfo') ){
+//  		$ret['r'] = -100;
+//  		$ret['msg'] = '请登录';
+//  		return json_encode($ret);
+//  		exit;
+//  	}
+//  	$user_id = session('userinfo')['user_id'];
+//  	$user_id = 40;//test
+		$user_id = input('user_id');
+    	if( $user_id <= 0){
+    		$ret['r'] = -1;
+    		$ret['msg'] = 'user_id参数不符合要求';
     		return json_encode($ret);
     		exit;
     	}
-    	$user_id = session('userinfo')['user_id'];
-//  	$user_id = 40;//test
     	$user_attention = model('UserAttention');
     	$user_project_tag = model('UserProjectTag');
     	$user_tag = model('UserTag');
@@ -441,7 +542,7 @@ class UserInfo extends Controller
 //  	dump($res);
     	$project_ids_str = implode(',', array_column( $res, 'project_id'));
     	
-    	$users = $collect -> getProjectCollectUsers($project_ids_str);
+    	$users = ($project_ids_str == '')?[]:$collect -> getProjectCollectUsers($project_ids_str);
 //  	dump($users);
     	$user_ids_str = implode(',', array_unique(array_column($users,'user_id')) );
     	$tags = ($user_ids_str == '')?[]:$user_tag -> getTagsByUserIds($user_ids_str);
@@ -493,7 +594,7 @@ class UserInfo extends Controller
     		$user_res = $user_info->get_user_detail_by_id( $user_id);
     		if(count($user_res) > 0){
     			$ret = array_merge( $ret, $user_res[0]);
-    			$atten_res = $user_attention->get_follow_users_by_id();
+    			$atten_res = $user_attention->get_follow_users_by_id( $user_id);
     			$project_res = $user_project_tag->get_project_by_userid();
     			
     			$tag_res = $user_tag->get_address_position_skill_interest_by_userid();
@@ -560,7 +661,7 @@ class UserInfo extends Controller
     		$skill = $user_tag->get_tag_by_userid($user_id, 11, 2);
     		$concern = $user_tag->get_tag_by_userid($user_id, 10, 2);
     		$language = $user_tag->get_tag_by_userid($user_id, 13, 2);
-    		$address = $user_tag -> get_tag_by_userid($user_id, 14, 2);
+    		$address = $user_tag -> get_tag_by_userid($user_id, 14, 4);
     		$result = $user_info->get_user_detail_by_id( $user_id);
     		$partners_num = $user_project_tag -> getPartnersNumByUserId();
     		$parr = [];
@@ -568,8 +669,8 @@ class UserInfo extends Controller
     			$parr[$v['project_id']] = $v['user_num'];
     		}
 //  		dump($partners_num);
-    		$by_atten_unum = $user_attention -> get_follow_users_by_id();
-    		$my_atten_unum = $user_attention -> getMyAttenUsersByUserId();//dump($my_atten_unum);
+    		$by_atten_unum = $user_attention -> get_follow_users_by_id( $user_id);
+    		$my_atten_unum = $user_attention -> getMyAttenUsersByUserId($user_id);//dump($my_atten_unum);
     		$by_atten_pnum = $user_project_tag -> getProjectAttenNum();
     		$project_res = $user_project_tag->get_project_by_userid();
     		$byArr = [];

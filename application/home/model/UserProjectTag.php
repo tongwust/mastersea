@@ -19,8 +19,8 @@ class UserProjectTag extends Model{
 	}
 	
 	public function GetMyProjectList($user_id){
-		$from = empty(input('from'))?0:input('from');
-		$page_size = empty(input('page_size'))?5:input('page_size');
+		$from = empty(input('from'))?0:intval(input('from'));
+		$page_size = empty(input('page_size'))?5:intval(input('page_size'));
 		
 		$sql = 'SELECT DISTINCT(upt.project_id),upt.tag_id,upt.create_time,ti.name tag_name,
 							p.name,p.collect_num,p.project_start_time,p.project_end_time,
@@ -35,9 +35,10 @@ class UserProjectTag extends Model{
 		
 		return $res;
 	}
+	
 	public function GetMyProjectFullList($user_id){
-		$from = empty(input('from'))?0:input('from');
-		$page_size = empty(input('page_size'))?5:input('page_size');
+		$from = empty(input('from'))?0:intval(input('from'));
+		$page_size = empty(input('page_size'))?5:intval(input('page_size'));
 		
 		$sql = 'SELECT DISTINCT(upt.project_id),upt.tag_id duty_id,ti.name duty_name,upt.create_time,
 							p.name as project_name,p.cat_name,p.address,p.intro,p.collect_num,p.praise_num,p.project_start_time,p.project_end_time,
@@ -46,15 +47,15 @@ class UserProjectTag extends Model{
 											 LEFT JOIN src_relation AS sr ON sr.relation_id = p.project_id && sr.type = 1
 											 LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 3
 											 LEFT JOIN tag_info AS ti ON upt.tag_id = ti.tag_id && upt.tag_id != 0
-				WHERE upt.user_id = :user_id && upt.user_type = 1 
+				WHERE upt.user_id = :user_id 
 					ORDER BY upt.create_time DESC LIMIT '.$from.','.$page_size;
 		$res = Db::query($sql, ['user_id' => $user_id]);
 		
 		return $res;
 	}
 	public function getProjectListByUserid(){
-		$from = empty(input('from'))?0:input('from');
-		$page_size = empty(input('page_size'))?5:input('page_size');
+		$from = empty(input('from'))?0:intval(input('from'));
+		$page_size = empty(input('page_size'))?5:intval(input('page_size'));
 		$user_id = input('user_id');
 		
 		$sql = 'SELECT DISTINCT(upt.project_id),upt.user_id,p.name as project_name,p.type,p.status,p.intro,p.praise_num,u.name AS username,s.src_name,s.path,s.resource_path,s.access_url,s.source_url,s.url
@@ -248,8 +249,8 @@ class UserProjectTag extends Model{
 		$sql = 'SELECT DISTINCT(upt.project_id),upt.user_id,s.src_id project_src_id,s.access_url project_access_url,upt.create_time
 				FROM user_project_tag AS upt LEFT JOIN src_relation AS sr ON upt.project_id = sr.relation_id && sr.type = 1
 											 LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 3
-				WHERE upt.user_id in('.$user_ids_str.')
-					  ORDER BY upt.create_time DESC';
+				WHERE upt.user_type=1 && upt.user_id in('.$user_ids_str.')
+					 ORDER BY upt.create_time DESC';
 		$res = Db::query($sql);
 		
 		return $res;
@@ -262,7 +263,7 @@ class UserProjectTag extends Model{
 				FROM user_project_tag AS upt INNER JOIN project_task_user AS ptu ON upt.project_id = ptu.project_id
 					LEFT JOIN task AS t ON ptu.task_id = t.task_id
 					LEFT JOIN src_relation AS sr ON sr.relation_id = t.task_id && sr.type = 2
-					LEFT JOIN src AS s ON s.src_id = sr.relation_id && s.type = 1
+					LEFT JOIN src AS s ON s.src_id = sr.src_id && s.type = 1
 				WHERE upt.user_id = :user_id && upt.user_type = 1
 					ORDER BY t.create_time DESC
 					LIMIT :from,:page_size';
@@ -270,6 +271,21 @@ class UserProjectTag extends Model{
 		
 		return $res;
 	}
+	public function getMyJoinProjectMembers( $user_id, $from, $page_size){
+		
+		$sql = 'SELECT DISTINCT(b.user_id),u.name user_name,s.src_id user_src_id,s.access_url user_access_url
+				FROM user_project_tag a INNER JOIN user_project_tag b ON a.project_id = b.project_id
+					LEFT JOIN user AS u ON b.user_id = u.user_id
+					LEFT JOIN src_relation AS sr ON sr.relation_id = u.user_id && sr.type = 3
+					LEFT JOIN src AS s ON s.src_id = sr.src_id && s.type = 2
+				WHERE a.user_id = :user_id && b.user_id != :self_id
+					LIMIT '.$from.','.$page_size;
+					
+		$res = Db::query($sql, ['user_id'=>$user_id,'self_id'=>$user_id]);
+		
+		return $res;
+	}
+	
 //	public function getProjectMemberNum($project_ids_str){
 //		
 //		$sql = 'SELECT count(project_id) as member_num

@@ -8,7 +8,9 @@
 // +----------------------------------------------------------------------
 // | Author: 流年 <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-
+use phpmailer\PHPMailer;
+use phpmailer\SMTP;
+use imgEncode\GIFEncoder;
 
 function interface_log($content){
 	$datefile = date('Y-m-d',time());
@@ -36,9 +38,6 @@ function interface_log($content){
  * @return boolean
  * @author static7 <static7@qq.com>
  */
-use phpmailer\PHPMailer;
-use phpmailer\SMTP;
-
 function send_mail($tomail, $name, $subject = '', $body = '', $attachment = null) {
     $mail = new PHPMailer();           //实例化PHPMailer对象
     $mail->CharSet = 'utf8';           //设定邮件编码，默认ISO-8859-1，如果发中文此项必须设置，否则乱码
@@ -111,3 +110,5 @@ function getUrlQuery($array_query)
  	$params = implode('&',$tmp);
   	return $params;
 }
+
+

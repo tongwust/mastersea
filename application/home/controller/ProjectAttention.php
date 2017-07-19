@@ -23,8 +23,8 @@ class ProjectAttention extends Controller{
 			exit;
 		}
 		$user_id = input('user_id');
-		$from = empty(input('from'))?0:input('from');
-		$page_size = empty(input('page_size'))?10:input('page_size');
+		$from = empty(input('from'))?0:intval(input('from'));
+		$page_size = empty(input('page_size'))?10:intval(input('page_size'));
 		if( !session('userinfo') ){
 			$ret['r'] = -100;
 			$ret['msg'] = '未登录';

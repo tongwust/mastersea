@@ -7,8 +7,8 @@ class ProjectTaskUser extends Model{
 	
 	protected $table = 'project_task_user';
 	public function getPartTaskList( $project_ids_str){
-		$from  = (input('from'))?input('from'):0;
-		$page_size = (input('page_size'))?input('page_size'):10;
+		$from  = (input('from'))?intval(input('from')):0;
+		$page_size = (input('page_size'))?intval(input('page_size')):10;
 		
 		$sql = 'SELECT ptu.project_id,ptu.task_id,t.title,s.src_id,s.access_url
 				FROM project_task_user AS ptu LEFT JOIN task AS t ON ptu.task_id = t.task_id
@@ -20,11 +20,11 @@ class ProjectTaskUser extends Model{
 		return $res;
 	}
 	public function get_task_src_comment_by_project_id(){
-		$from  = (input('from'))?input('from'):0;
-		$page_size = ( input('page_size'))?input('page_size'):10;
+		$from  = (input('from'))?intval(input('from')):0;
+		$page_size = ( input('page_size'))?intval(input('page_size')):10;
 		$project_id = input('project_id');
 		
-		$sql = 'SELECT ptu.task_id,t.title,t.description,t.status,t.praise_num,t.create_time,t.task_order
+		$sql = 'SELECT ptu.user_id,ptu.task_id,t.title,t.description,t.status,t.praise_num,t.create_time,t.task_order
 				FROM project_task_user ptu LEFT JOIN task t ON ptu.task_id = t.task_id
 				WHERE ptu.project_id = :project_id
 					ORDER BY t.create_time DESC,t.task_order ASC LIMIT '.$from.','.$page_size;

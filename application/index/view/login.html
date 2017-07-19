@@ -57,6 +57,21 @@
 				<div class="formControls col-xs-8 col-xs-offset-3">
 					<input name="" type="submit" class="btn btn-success radius size-L" value="&nbsp;登&nbsp;&nbsp;&nbsp;&nbsp;录&nbsp;">
 					<input name="" type="reset" class="btn btn-default radius size-L" value="&nbsp;取&nbsp;&nbsp;&nbsp;&nbsp;消&nbsp;">
+					<div>
+					    <img id="verify_img" src="{:captcha_src()}" alt="验证码" onclick="refreshVerify()">
+					    <a href="javascript:refreshVerify()">点击刷新</a>
+					</div>
+					<form action="{:url('index/check')}" method="post">
+					    <input type="text" name = "verify">
+					    <input type="submit" value = "提交">
+					</form>
+					<script>
+					    function refreshVerify() {
+					        var ts = Date.parse(new Date())/1000;
+					        var img = document.getElementById('verify_img');
+					        img.src = "/captcha?id="+ts;
+					    }
+					</script>
 				</div>
 			</div>
 		</form>

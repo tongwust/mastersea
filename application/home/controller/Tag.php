@@ -9,6 +9,50 @@ use think\Loader;
 
 class Tag extends Controller{
 	
+	public function hot_tags(){
+		$ret = [
+			'r' => 0,
+			'msg' => '查询成功',
+		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		$page_size = empty(input('page_size'))?5:input('page_size');
+		if( input('tstr') == '' && $page_size > 0){
+			$ret['r'] = -1;
+			$ret['msg'] = '参数不符';
+			return json_encode($ret);
+			exit;
+		}
+		$list = explode( ',', input('tstr'));
+		$user_tag = model('UserTag');
+		foreach($list as $v){
+			switch($v){
+				case 'p':
+					$themeid = 10;
+					$ret['plist'] = $user_tag -> hotTags( $themeid, $page_size);
+					break;
+				case 's':
+					$themeid = 11;
+					$ret['slist'] = $user_tag -> hotTags( $themeid, $page_size);
+					break;
+				case 'l':
+					$themeid = 13;
+					$ret['llist'] = $user_tag -> hotTags( $themeid, $page_size);
+					break;
+				case 'a':
+					$themeid = 14;
+					$ret['alist'] = $user_tag -> hotTags( $themeid, $page_size);
+					break;
+			}
+		}
+//		dump($ret);
+		return json_encode($ret);
+	}
 	//search tag
 	public function search_tags(){
 		
@@ -181,15 +225,15 @@ class Tag extends Controller{
 			'msg' => '添加成功',
 			'tag_id' => '',
 		];
-		if( $pid > 0 ){
-			$res = Db::query('call addTag(:pid,:name,:short_name,:themeid,:type,@id)',['pid'=>$pid,'name'=>$name,'short_name'=>$short_name,'themeid'=>$themeid,'type'=>$type]);
+		if( $pid > 0 && $themeid > 0){
+			$res = $tag -> addTag( $pid, $name, $short_name, $themeid, $type);
 			if(!(count($res) > 0 && $res[0][0]['result'] == 1000)){
 				$ret['r'] = -2;
 				$ret['msg'] = '添加失败';
+				return json_encode($ret);
+				exit;
 			}
-//			dump($res);
-			$tag_id = Db::query('select @id');
-			$ret['tag_id'] = (count($tag_id) > 0)?$tag_id[0]['@id']:'';
+			$ret['tag_id'] = $res[0]['tag_id'];
 //			dump( $tag_id);
 		}else{
 			$ret['r'] = -1;
