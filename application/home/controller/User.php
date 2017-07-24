@@ -32,8 +32,6 @@ class User extends Controller{
 		}
 		$user_attention = model('UserAttention');
 		$user_project_tag = model('UserProjectTag');
-		
-		
 		$res = $user_attention -> getAttenUserinfo();
 //		dump($res);
 		$user_id_arr = array_column( $res, 'user_id');
@@ -42,15 +40,12 @@ class User extends Controller{
 			exit;
 		}
 		$user_ids_str = implode( ',', $user_id_arr);
-		
 		$projects = ($user_ids_str == '')?[]:$user_project_tag -> getUserProjectByUserids($user_ids_str);
-
 		$atten_num_arr = ($user_ids_str == '')?[]:$user_attention -> getAttenNumByUserids($user_ids_str);
 		$atten_arr = [];
 		foreach( $atten_num_arr as $a){
 			$atten_arr[$a['follow_user_id']] = $a['atten_num'];
 		}
-		
 		$project_num_arr = ($user_ids_str == '')?[]:$user_project_tag -> getProjectNumByUserids($user_ids_str);
 		$arr = [];
 		foreach($project_num_arr as $v){
@@ -61,18 +56,17 @@ class User extends Controller{
 		foreach( $res as $k => &$v){
 			foreach( $projects as $val){
 				if($v['user_id'] == $val['user_id'] ){
-					
 					$v['project_id'] = $val['project_id'];
 					$v['tag_id'] = $val['tag_id'];
 					$v['user_type'] = $val['user_type'];
 					$v['project_name'] = $val['project_name'];
 					$v['tag_name'] = $val['tag_name'];
-					$v['src_name'] = $val['src_name'];
-					$v['path'] = $val['path'];
-					$v['resource_path'] = $val['resource_path'];
+//					$v['src_name'] = $val['src_name'];
+//					$v['path'] = $val['path'];
+//					$v['resource_path'] = $val['resource_path'];
 					$v['access_url'] = $val['access_url'];
-					$v['source_url'] = $val['source_url'];
-					$v['url'] = $val['url'];
+//					$v['source_url'] = $val['source_url'];
+//					$v['url'] = $val['url'];
 					$v['atten_num'] = empty($atten_arr[$v['user_id']])?'':$atten_arr[$v['user_id']];
 					$v['project_num'] = empty($arr[$v['user_id']])?'':$arr[$v['user_id']];
 					break;

@@ -32,6 +32,17 @@ class UserInfo extends Model{
 		$res = Db::query( $sql, ['user_id' => $user_id]);
 		return $res;		
 	}
+	public function getUsersPartInfo( $user_ids_str){
+		$sql = 'SELECT DISTINCT(u.user_id),u.name username,s.access_url
+				FROM user AS u LEFT JOIN src_relation AS sr ON sr.relation_id = u.user_id && sr.type = 3
+							   LEFT JOIN src AS s ON s.src_id = sr.src_id && s.type = 2
+				WHERE u.user_id in('.$user_ids_str.')';
+				
+		$res = Db::query( $sql);
+		return $res;
+	}
+	
+	
 	
 }
 

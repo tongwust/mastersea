@@ -37,18 +37,17 @@ class Comment extends Controller{
 		}else{
 			$user_id = session('userinfo')['user_id'];
 		}
-		if($user_id > 0 && strlen($content) > 0){
+		if($user_id > 0 && strlen($content) > 0 && $cid > 0 && ($type == 1 || $type == 2)){
 			$comment->pid = $pid;
 			$comment->cid = $cid;
 			$comment->type = $type;
 			$comment->user_id = $user_id;
 			$comment->content = $content;
-			
 			$comment->save();
 			$ret['pc_id'] = $comment->pc_id;
 		}else{
 			$ret['r'] = -1;
-			$ret['msg'] = 'user_id非法或评论内容不能空';
+			$ret['msg'] = '参数格式不符';
 		}
 		return json_encode($ret);
 	}

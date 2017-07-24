@@ -10,7 +10,7 @@ class ProjectTaskUser extends Model{
 		$from  = (input('from'))?intval(input('from')):0;
 		$page_size = (input('page_size'))?intval(input('page_size')):10;
 		
-		$sql = 'SELECT ptu.project_id,ptu.task_id,t.title,s.src_id,s.access_url
+		$sql = 'SELECT ptu.project_id,ptu.task_id,t.title,s.src_id,s.access_url origin_access_url,CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_865x579.",SUBSTRING_INDEX(s.access_url,".",-1)) AS access_url
 				FROM project_task_user AS ptu LEFT JOIN task AS t ON ptu.task_id = t.task_id
 											  LEFT JOIN src_relation AS sr ON t.task_id = sr.relation_id && sr.type = 2
 											  LEFT JOIN src AS s ON sr.src_id = s.src_id

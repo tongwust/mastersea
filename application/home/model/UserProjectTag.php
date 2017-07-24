@@ -23,7 +23,7 @@ class UserProjectTag extends Model{
 		$page_size = empty(input('page_size'))?5:intval(input('page_size'));
 		
 		$sql = 'SELECT DISTINCT(upt.project_id),upt.tag_id,upt.create_time,ti.name tag_name,
-							p.name,p.collect_num,p.project_start_time,p.project_end_time,
+							p.name,p.collect_num,p.project_start_time,p.project_end_time,p.duty,
 							s.src_id project_src_id,s.access_url project_access_url
 				FROM user_project_tag AS upt LEFT JOIN project AS p ON upt.project_id = p.project_id && p.status != -1
 											 LEFT JOIN src_relation AS sr ON sr.relation_id = p.project_id && sr.type = 1
@@ -40,15 +40,16 @@ class UserProjectTag extends Model{
 		$from = empty(input('from'))?0:intval(input('from'));
 		$page_size = empty(input('page_size'))?5:intval(input('page_size'));
 		
-		$sql = 'SELECT DISTINCT(upt.project_id),upt.tag_id duty_id,ti.name duty_name,upt.create_time,
-							p.name as project_name,p.cat_name,p.address,p.intro,p.collect_num,p.praise_num,p.project_start_time,p.project_end_time,
-							s.src_id project_src_id,s.access_url project_access_url
-				FROM user_project_tag AS upt LEFT JOIN project AS p ON upt.project_id = p.project_id && p.status != -1
-											 LEFT JOIN src_relation AS sr ON sr.relation_id = p.project_id && sr.type = 1
-											 LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 3
-											 LEFT JOIN tag_info AS ti ON upt.tag_id = ti.tag_id && upt.tag_id != 0
-				WHERE upt.user_id = :user_id 
-					ORDER BY upt.create_time DESC LIMIT '.$from.','.$page_size;
+		$sql = 'SELECT DISTINCT(b.project_id),b.create_time,b.user_id,
+							p.name as project_name,p.cat_name,p.address,p.duty,p.intro,p.collect_num,p.praise_num,p.project_start_time,p.project_end_time,
+							s.src_id project_src_id,s.access_url project_origin_access_url,CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_339x387.",SUBSTRING_INDEX(s.access_url,".",-1)) AS project_access_url
+				FROM user_project_tag AS a 
+						 INNER JOIN user_project_tag as b ON a.project_id = b.project_id && b.user_type = 1
+						 INNER JOIN project AS p ON b.project_id = p.project_id && p.status != -1
+						 LEFT JOIN src_relation AS sr ON sr.relation_id = p.project_id && sr.type = 1
+						 LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 3
+				WHERE a.user_id = :user_id 
+					ORDER BY b.create_time DESC LIMIT '.$from.','.$page_size;
 		$res = Db::query($sql, ['user_id' => $user_id]);
 		
 		return $res;
@@ -58,12 +59,16 @@ class UserProjectTag extends Model{
 		$page_size = empty(input('page_size'))?5:intval(input('page_size'));
 		$user_id = input('user_id');
 		
-		$sql = 'SELECT DISTINCT(upt.project_id),upt.user_id,p.name as project_name,p.type,p.status,p.intro,p.praise_num,u.name AS username,s.src_name,s.path,s.resource_path,s.access_url,s.source_url,s.url
-				FROM user as u LEFT JOIN user_project_tag as upt ON u.user_id = upt.user_id
-					INNER JOIN project as p ON upt.project_id = p.project_id && p.status != -1
+		$sql = 'SELECT DISTINCT(b.project_id),b.user_id,u.name as username,p.name as project_name,p.type,p.status,p.intro,p.praise_num,
+						s.access_url as project_origin_access_url,CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_339x387.",SUBSTRING_INDEX(s.access_url,".",-1)) AS project_access_url
+				FROM user_project_tag as a
+					INNER JOIN user_project_tag as b ON a.project_id = b.project_id && b.user_type = 1
+					INNER JOIN project as p ON b.project_id = p.project_id && p.status != -1
 					LEFT JOIN src_relation as sr ON p.project_id = sr.relation_id && sr.type = 1
 					LEFT JOIN src as s ON sr.src_id = s.src_id && s.type = 3
-				WHERE u.user_id = :user_id LIMIT '.$from.','.$page_size;
+					LEFT JOIN user as u ON b.user_id = u.user_id
+				WHERE a.user_id = :user_id  
+					ORDER BY b.create_time DESC LIMIT '.$from.','.$page_size;
 		$res = Db::query( $sql, ['user_id' => $user_id ]);
 		
 		return $res;
@@ -89,12 +94,11 @@ class UserProjectTag extends Model{
 //				FROM user_project_tag a LEFT JOIN user_project_tag b ON a.project_id = b.project_id
 //				WHERE a.user_id = '.$user_id.' && a.user_type = 1
 //					GROUP BY b.project_id';
-		$sql = 'SELECT project_id,count(user_id) as user_num
+		$sql = 'SELECT DISTINCT(user_id)
 				FROM user_project_tag
 				WHERE project_id IN (SELECT DISTINCT(project_id)
 									 FROM user_project_tag
-									 WHERE user_id = '.$user_id.' && user_type = 1)
-					GROUP BY project_id';
+									 WHERE user_id = '.$user_id.')';
 		$res = Db::query( $sql);
 		
 		return $res;
@@ -221,14 +225,15 @@ class UserProjectTag extends Model{
 	}
 	public function getUserProjectByUserids($user_ids_str){
 		
-		$sql = 'SELECT DISTINCT(upt.user_id),upt.project_id,upt.tag_id,upt.user_type,p.name project_name,ti.name as tag_name,
-					s.src_name,s.path,s.resource_path,s.access_url,s.source_url,s.url
+		$sql = 'SELECT DISTINCT(upt.user_id),upt.project_id,upt.tag_id,upt.user_type,p.name project_name,ti.name as tag_name,s.access_url
 				FROM user_project_tag as upt LEFT JOIN project as p ON upt.project_id = p.project_id
 					LEFT JOIN src_relation as sr ON sr.relation_id = p.project_id && sr.type = 1
 					LEFT JOIN src as s ON sr.src_id = s.src_id
-					INNER JOIN tag as t ON upt.tag_id = t.tag_id
+					LEFT JOIN user_tag as ut ON upt.user_id = ut.user_id
+					INNER JOIN tag as t ON ut.tag_id = t.tag_id && t.themeid = 10
 					LEFT JOIN tag_info as ti ON t.tag_id = ti.tag_id
-				WHERE upt.user_id in ('.$user_ids_str.') && upt.user_type = 1';
+				WHERE upt.user_id in ('.$user_ids_str.') && upt.user_type = 1
+					 GROUP BY upt.user_id';
 		$res = Db::query( $sql );
 		
 		return $res;
@@ -259,7 +264,8 @@ class UserProjectTag extends Model{
 	public function myShowProjectTasklist( $from, $page_size){
 		
 		$sql = 'SELECT DISTINCT(t.task_id),upt.project_id,t.title,t.description,t.status,t.praise_num,t.collect_num,t.create_time,
-						s.src_id,s.src_name,s.src_order,s.type src_type,s.status src_status,s.path,s.resource_path,s.access_url
+						s.src_id,s.src_name,s.src_order,s.type src_type,s.status src_status,s.path,s.resource_path,s.access_url,
+						CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_865x579.",SUBSTRING_INDEX(s.access_url,".",-1)) AS origin_access_url
 				FROM user_project_tag AS upt INNER JOIN project_task_user AS ptu ON upt.project_id = ptu.project_id
 					LEFT JOIN task AS t ON ptu.task_id = t.task_id
 					LEFT JOIN src_relation AS sr ON sr.relation_id = t.task_id && sr.type = 2

@@ -414,11 +414,14 @@ class Project extends Controller{
 		}
 		$user_project_tag = model('UserProjectTag');
 		$project_atten = model('ProjectAttention');
+		$src_relation = model('SrcRelation');
 		
 		$res = $user_project_tag -> getProjectListByUserid();
 //		dump($res);
 		$project_id_arr = array_column( $res, 'project_id');
 		$project_ids_str = implode( ',', $project_id_arr);
+		$user_id_arr = array_column( $res, 'user_id');
+		$user_ids_str = implode( ',', $user_id_arr);
 		
 		$atten_arr = ($project_ids_str == '')?[]:$project_atten -> getProjectAttenNum($project_ids_str);
 		$arr = [];
@@ -431,12 +434,21 @@ class Project extends Controller{
 		foreach( $members as $v){
 			$member_num_arr[$v['project_id']] = isset($member_num_arr[$v['project_id']])?$member_num_arr[$v['project_id']] + 1:1;
 		}
+		$users_head_img = ($user_ids_str == '')?[]:$src_relation -> get_srcs_by_relation_ids( $user_ids_str, 3);
+		$head_arr = [];
+		foreach($users_head_img as $u){
+			$head_arr[$u['relation_id']] = $u['access_url'];
+		}
+//		dump($users_head_img);
 		foreach( $res as &$v){
 			$v['atten_num'] = empty($arr[$v['project_id']])?0:$arr[$v['project_id']];
 			$v['member_num'] = empty($member_num_arr[$v['project_id']])?0:$member_num_arr[$v['project_id']]-1;
+			$v['user_access_url'] = isset($head_arr[$v['user_id']])?$head_arr[$v['user_id']]:'';
+			
 		}
-		$ret['project_list'] = $res;
 		
+		$ret['project_list'] = $res;
+//		dump($ret);
 		return json_encode($ret);
 	}
 	public function get_search_project_ids(){
@@ -824,7 +836,7 @@ class Project extends Controller{
 		$name = trim(input('name'));
 		$type = input('type');
 		$en_name = trim(input('en_name'));
-		$cat_name = trim(input('cat_name'));
+		$duty = trim(input('duty'));
 		$address = trim(input('address'));
 		$project_start_time = input('project_start_time');
 		$project_end_time = input('project_end_time');
@@ -853,7 +865,7 @@ class Project extends Controller{
 			$project->name = $name;
 			$project->type = $type;
 //			$project->en_name = $en_name;
-//			$project->cat_name = $cat_name;
+			$project->duty = $duty;
 //			$project->address = $address;
 //			$project->project_start_time = $project_start_time;
 //			$project->project_end_time = $project_end_time;

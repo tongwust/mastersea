@@ -9,16 +9,27 @@ class SrcRelation extends Model{
 	
 	public function get_task_src_by_task_ids( $task_ids, $type){
 		
-		$sql = 'SELECT sr.relation_id as task_id,s.src_id,s.src_name,s.src_order,s.type as src_type,s.status as src_status,s.path,s.access_url,s.resource_path,s.url,s.source_url
+		$sql = 'SELECT sr.relation_id as task_id,s.src_id,s.src_name,s.src_order,s.type as src_type,s.status as src_status,s.path,s.access_url origin_access_url,s.resource_path,
+					CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_865x579.",SUBSTRING_INDEX(s.access_url,".",-1)) access_url
 				FROM src_relation sr LEFT JOIN src s ON sr.src_id = s.src_id && sr.type = '.$type.'
 				WHERE (s.type = 1 || s.type = 5) && sr.relation_id in ('.$task_ids.')';
 		$res = Db::query( $sql);
 		
 		return $res;
 	}
+	public function get_srcs_by_relation_ids( $relation_ids, $type){
+		
+		$sql = 'SELECT sr.relation_id,s.access_url
+				FROM src_relation sr LEFT JOIN src s ON sr.src_id = s.src_id 
+				WHERE sr.type = '.$type.' && sr.relation_id in ('.$relation_ids.')';
+		$res = Db::query( $sql);
+		
+		return $res;
+	}
 	public function getSrcinfo( $relation_id, $r_type, $type){
 		
-		$sql = 'SELECT s.src_id,s.src_name,s.type,s.status,s.path,s.access_url,s.source_url,s.url,s.resource_path
+		$sql = 'SELECT s.src_id,s.src_name,s.type,s.status,s.path,s.access_url origin_access_url,
+				CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_339x387.",SUBSTRING_INDEX(s.access_url,".",-1)) AS access_url,s.source_url,s.url,s.resource_path
 				FROM src_relation AS sr LEFT JOIN src AS s ON sr.src_id = s.src_id && sr.type = :r_type
 				WHERE sr.relation_id = :relation_id && s.type = :type';
 		$res = Db::query( $sql, ['relation_id' => $relation_id,'r_type' => $r_type, 'type' => $type]);

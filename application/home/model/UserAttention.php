@@ -9,8 +9,7 @@ class UserAttention extends Model{
 
 	public function getAttenUserinfo(){
 		$follow_user_id = input('user_id');
-		$sql = 'SELECT ua.user_id,u.name as username,ui.en_name,ui.fullname,s.src_id head_src_id,s.src_name head_src_name,s.path head_path,
-						s.resource_path head_resource_path,s.access_url head_access_url,s.source_url head_source_url,s.url as head_url
+		$sql = 'SELECT ua.user_id,u.name as username,ui.en_name,ui.fullname,s.access_url head_access_url
 				FROM user_attention as ua LEFT JOIN user as u ON ua.user_id = u.user_id
 					LEFT JOIN user_info as ui ON u.user_id = ui.user_id
 					LEFT JOIN src_relation as sr ON sr.relation_id = u.user_id && sr.type = 3

@@ -123,7 +123,7 @@ class UserInfo extends Controller
 //  	$atten_arr = $project_attention -> getProjectAttenNum($project_ids_str);
     	$users_arr = ($project_ids_str == '')?[]:$user_project_tag -> get_user_info_by_project_ids($project_ids_str);
     	//dump($users_arr);
-    	$members = $user_project_tag -> get_project_members( $project_ids_str );
+    	$members = ($project_ids_str == '')?[]:$user_project_tag -> get_project_members( $project_ids_str );
 		$member_num_arr = array();
 		foreach( $members as $v){
 			$member_num_arr[$v['project_id']] = isset($member_num_arr[$v['project_id']])?$member_num_arr[$v['project_id']] + 1:1;
@@ -333,7 +333,7 @@ class UserInfo extends Controller
 //  		return json_encode($ret);
 //  		exit;
 //  	}
-//  	$user_id = session('userinfo')['user_id'];
+    	$me_id = session('userinfo')['user_id'];
     	$user_id = input('user_id');
     	if( $user_id <= 0){
     		$ret['r'] = -1;
@@ -344,13 +344,33 @@ class UserInfo extends Controller
     	$user_project_tag = model('UserProjectTag');
     	$project_task_user = model('ProjectTaskUser');
     	$project_tag = model('ProjectTag');
+    	$user_info = model('UserInfo');
+    	$praise = model('Praise');
+    	$collect = model('Collect');
     	
     	$res = $user_project_tag -> GetMyProjectFullList( $user_id );
     	$project_ids_str = implode( ',', array_column( $res, 'project_id') );
+    	$user_ids_str = implode(',', array_column( $res, 'user_id'));
+    	$users_info = ($user_ids_str == '')?[]:$user_info -> getUsersPartInfo( $user_ids_str);
 //  	dump($res);
     	$tasks = ($project_ids_str == '')?[]:$project_task_user -> getPartTaskList( $project_ids_str);
     	$addr = ($project_ids_str == '')?[]:$project_tag -> getProjectTags( $project_ids_str);
 //  	dump($tasks);
+		$members = ($project_ids_str == '')?[]:$user_project_tag -> get_project_members( $project_ids_str );
+		$member_num_arr = array();
+		foreach( $members as $v){
+			$member_num_arr[$v['project_id']] = isset($member_num_arr[$v['project_id']])?$member_num_arr[$v['project_id']] + 1:1;
+		}
+		$project_praise_res = ($project_ids_str == '' || $me_id <= 0)?[]:$praise -> get_user_praise( $me_id, $project_ids_str, 1);//dump($task_praise_res);
+		$project_collect_res = ($project_ids_str == '' || $me_id <= 0)?[]:$collect -> get_user_collect( $me_id, $project_ids_str, 1);//dump($task_collect_res);
+		$project_praise = [];
+		foreach($project_praise_res as $r){
+			$project_praise[$r['cid']] = $r['praise_id'];
+		}
+		$project_collect = [];
+		foreach($project_collect_res as $r){
+			$project_collect[$r['cid']] = $r['collect_id'];
+		}
     	foreach( $res as &$v){
     		$v['task'] = [];
     		foreach( $tasks as $t){
@@ -366,9 +386,21 @@ class UserInfo extends Controller
     				array_push( $a['address'], $a);
     			}
     		}
+    		$v['member_num'] = empty($member_num_arr[$v['project_id']])?0:$member_num_arr[$v['project_id']]-1;
+    		$v['login']['is_praise'] = isset($project_praise[$v['project_id']])?1:0;
+			$v['login']['is_collect'] = isset($project_collect[$v['project_id']])?1:0;
+			$v['username'] = '';
+			$v['access_url'] = '';
+			foreach( $users_info as $u){
+				if( $v['user_id'] == $u['user_id']){
+					$v['username'] = $u['username'];
+					$v['access_url'] = $u['access_url'];
+				}
+			}
     	}
     	$ret['pinfo'] = $res;
 //  	dump($ret );
+		//trace($ret,'get_my_project_list');
     	return json_encode( $ret);
     }
     
@@ -665,27 +697,28 @@ class UserInfo extends Controller
     		$result = $user_info->get_user_detail_by_id( $user_id);
     		$partners_num = $user_project_tag -> getPartnersNumByUserId();
     		$parr = [];
-    		foreach( $partners_num as $v){
-    			$parr[$v['project_id']] = $v['user_num'];
-    		}
+    		//dump($partners_num);
+//  		foreach( $partners_num as $v){
+//  			$parr[$v['project_id']] = $v['user_num'];
+//  		}
 //  		dump($partners_num);
     		$by_atten_unum = $user_attention -> get_follow_users_by_id( $user_id);
-    		$my_atten_unum = $user_attention -> getMyAttenUsersByUserId($user_id);//dump($my_atten_unum);
+    		$my_atten_unum = $user_attention -> getMyAttenUsersByUserId( $user_id);
     		$by_atten_pnum = $user_project_tag -> getProjectAttenNum();
-    		$project_res = $user_project_tag->get_project_by_userid();
+    		$project_res = $user_project_tag -> get_project_by_userid();
     		$byArr = [];
     		foreach( $by_atten_pnum as $val){
-    			$byArr[$v['project_id']] = $v['user_num'];
+    			$byArr[$val['project_id']] = $val['user_num'];
     		}
     		$my_atten_pnum = $project_attention -> getMyAttenProjectNum();
     		
     		$contact = $user_contact->get_user_contact_by_userid();
     		if( count($result) > 0 ){
     			$ret['data'] = (count($result[0]) > 0)?$result[0]:[];
-    			$ret['data']['partners_num'] = array_sum($parr);
+    			$ret['data']['partners_num'] = (count($partners_num) == 0)?0:count($partners_num) - 1;
     			$ret['data']['by_atten_unum'] = count($by_atten_unum);
     			$ret['data']['my_atten_unum'] = count($my_atten_unum);
-    			$user_arr = array_column($my_atten_unum,'user_id');
+    			$user_arr = array_column($by_atten_unum,'user_id');
     			$ret['data']['is_atten'] = in_array( $me_id, $user_arr)?1:0;
     			$ret['data']['by_atten_pnum'] = array_sum($byArr);
     			$ret['data']['my_atten_pnum'] = (count($my_atten_pnum) > 0)?$my_atten_pnum[0]['my_atten_pnum']:0;
@@ -739,11 +772,7 @@ class UserInfo extends Controller
     	$language = json_decode( input('language'), true);
     	$skill = json_decode( input('skill'), true);
     	$concern = json_decode( input('concern'), true);
-    	if( $birthday == ''){
-    		$ret['msg'] = '生日不能为空';
-    		return json_encode($ret);
-    		exit;
-    	}
+    	
     	$education_school = input('education_school');
     	$history = input('history');
     	$intro = input('intro');
@@ -757,12 +786,16 @@ class UserInfo extends Controller
     	if($user_id > 0){
     		Db::startTrans();
     		try{
-    			$res = $user_info->allowField(['sex','birthday','fullname','en_name','curr_company','en_company','short_name','education_school','intro'])->save(input(),['user_id'=>$user_id]);
+    			if( preg_match('/^\d{4}(\-|\/|.)\d{1,2}\1\d{1,2}$/', $birthday) ){
+    				$data = ['sex','birthday','fullname','en_name','curr_company','en_company','short_name','education_school','intro'];
+    			}else{
+    				$data = ['sex','fullname','en_name','curr_company','en_company','short_name','education_school','intro'];
+    			}
+    			$res = $user_info->allowField( $data )->save(input(),['user_id'=>$user_id]);
 //  			$user_contact -> del_user_contact_by_userid( $user_id);
     			if(count($contact) > 0){
     				$res = $user_contact->saveAll( $contact);
     			}
-    			
     			$user_tag -> delete_user_tag($user_id, 10, 3);//del position
     			if( count( $position ) > 0 ){
     				$position_list = [];
