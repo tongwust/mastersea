@@ -17,11 +17,13 @@ class Project extends Model{
 		return $res;
 	}
 	public function updateProjectById(){
+		$pst = (input('project_start_time')=='')?null:input('project_start_time');
+		$pet = (input('project_end_time') == '')?null:input('project_end_time');
  		$sql = 'UPDATE project 
- 				SET name = :name,en_name = :en_name,cat_name = :cat_name,intro = :intro,
+ 				SET name = :name,en_name = :en_name,cat_name = :cat_name,intro = :intro,duty = :duty,
  					project_start_time = :project_start_time,project_end_time = :project_end_time
  				WHERE project_id = :project_id';
- 		$res = Db::query($sql, ['project_id'=>input('project_id'),'name'=>input('name'),'en_name'=>input('en_name'),'cat_name'=>input('cat_name'),'intro'=>input('intro'),'project_start_time'=>input('project_start_time'),'project_end_time'=>input('project_end_time')]);
+ 		$res = Db::query($sql, ['project_id'=>input('project_id'),'name'=>input('name'),'duty'=>input('duty'),'en_name'=>input('en_name'),'cat_name'=>input('cat_name'),'intro'=>input('intro'),'project_start_time'=>$pst,'project_end_time'=>$pet]);
 		
 		return $res;
 	}

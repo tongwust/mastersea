@@ -217,6 +217,7 @@ class Project extends Controller{
 			return json_encode($ret);
 			exit;
 		}
+		$user_id = session('userinfo')['user_id'];
 		$project_id = input('project_id');
 		if( $project_id > 0){
 			$user_project_tag = model('UserProjectTag');
@@ -233,6 +234,12 @@ class Project extends Controller{
 		}else{
 			$ret['r'] = -1;
 			$ret['msg'] = '参数不符合要求';
+		}
+		if( $user_id > 0){
+			$manage_project_member = model('ManageProjectMember');
+			$mpm_res = $manage_project_member -> check_user_manage_record($user_id, $user_id, $project_id, 4);
+			
+			$ret['is_apply'] = (count($mpm_res) > 0)?1:0;
 		}
 //		dump($ret);
 		return json_encode($ret);
@@ -647,7 +654,7 @@ class Project extends Controller{
 		$project_id = input('project_id');
 		$opt_id = input('opt_id');
 		$reg_date = '/^d{4}-d{2}-d{2} d{2}:d{2}:d{2}$/s';
-		if( $project_id <= 0 || $opt_id <= 0 || preg_match( $reg_date, input('project_start_time')) == 0 || preg_match( $reg_date, input('project_end_time')) == 0){
+		if( $project_id <= 0 || $opt_id <= 0 || (input('project_start_time') != '' && preg_match( $reg_date, input('project_start_time')) == 0) || (input('project_end_time') != '' && preg_match( $reg_date, input('project_end_time')) == 0)){
 			$ret['r'] = -1;
 			$ret['msg'] = '参数不符';
 			return json_encode( $ret );

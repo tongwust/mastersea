@@ -47,7 +47,7 @@ class Msg extends Controller{
 			return json_encode($ret);
 			exit;
 		}
-//		$send_user_id = session('userinfo')['user_id'];
+		$opt_id = session('userinfo')['user_id'];
 		$send_user_id = input('send_user_id');
 //		$send_user_id = 3;//test
 		$receive_user_id = input('receive_user_id');
@@ -60,6 +60,7 @@ class Msg extends Controller{
 			return json_encode($ret);
 			exit;
 		}
+		$manage_project_member = model('ManageProjectMember');
 		if( $type == 2 || $type == 3 || $type == 4 || $type == 5 || $type == 6){
 			$msg_arr = convertUrlQuery( base64_decode($msg_content) );
 			if( !(isset($msg_arr['project_id']) && isset($msg_arr['charge_user_id']) && isset($msg_arr['user_id'])) ){
@@ -67,6 +68,16 @@ class Msg extends Controller{
 				$ret['msg'] = 'msg_content参数格式不符';
 				return json_encode($ret);
 				exit;
+			}
+			if( $type == 2 || $type == 4){
+				$mpm_res = $manage_project_member -> check_user_manage_record($msg_arr['user_id'], $opt_id, $msg_arr['project_id'], $type);
+				if( count($mpm_res) > 0){
+					$ret['r'] = -4;
+					$ret['msg'] = 'opt_id='.$opt_id.' 在'.$mpm_res[0]['create_time'].'内已操作过 user_id='.$msg_arr['user_id'].'，请勿重复操作';
+					$ret['user_id'] = $msg_arr['user_id'];
+					return json_encode($ret);
+					exit;
+				}
 			}
 		}
 		if($receive_user_id <= 0 && $receive_user_name != ''){
@@ -94,6 +105,13 @@ class Msg extends Controller{
 			$msg -> send_user_id = $send_user_id;
 			$msg -> receive_user_id = $receive_user_id;
 			$msg -> save();
+			if( $type == 2 || $type == 4){
+				$manage_project_member -> user_id = $msg_arr['user_id'];
+				$manage_project_member -> opt_id = $opt_id;
+				$manage_project_member -> project_id = $msg_arr['project_id'];
+				$manage_project_member -> type = $type;
+				$manage_project_member -> save();
+			}
 			$ret['msg_id'] = $msg_text->msg_id;
 			Db::commit();
 		}catch(\Exception $e){
@@ -123,6 +141,7 @@ class Msg extends Controller{
 			exit;
 		}
 		$send_user_id = session('userinfo')['user_id'];
+		$opt_id = $send_user_id;
 //		$send_user_id = input('send_user_id');
 //		$send_user_id = 3;//test
 		$msgs = json_decode(input('msgs'),true);
@@ -133,6 +152,8 @@ class Msg extends Controller{
 			exit;
 		}
 		$text_arr = [];
+		$mpm_arr = [];
+		$manage_project_member = model('ManageProjectMember');
 		foreach( $msgs as $k => &$v){
 			$v['send_user_id'] = $send_user_id;
 			if(  $v['type'] == 2 || $v['type'] == 3 || $v['type'] == 4 || $v['type'] == 5 || $v['type'] == 6){
@@ -142,6 +163,17 @@ class Msg extends Controller{
 					$ret['msg'] = 'msg_content参数格式不符';
 					return json_encode($ret);
 					exit;
+				}
+				if( $v['type'] == 2 || $v['type'] == 4){
+					$mpm_res = $manage_project_member -> check_user_manage_record($msg_arr['user_id'], $opt_id, $msg_arr['project_id'], $v['type']);
+					if( count($mpm_res) > 0){
+						$ret['r'] = -4;
+						$ret['msg'] = 'opt_id='.$opt_id.' 在'.$mpm_res[0]['create_time'].'内已操作过 user_id='.$msg_arr['user_id'].'，请勿重复操作';
+						$ret['user_id'] = $msg_arr['user_id'];
+						return json_encode($ret);
+						exit;
+					}
+					array_push( $mpm_arr, ['user_id' => $msg_arr['user_id'],'opt_id'=>$opt_id,'project_id'=>$msg_arr['project_id'],'type'=>$v['type']] );
 				}
 			}
 			array_push( $text_arr, ['msg_title'=>$v['msg_title'],'msg_content'=>$v['msg_content'],'type'=>$v['type']] );
@@ -158,6 +190,7 @@ class Msg extends Controller{
 			}
 			$msg -> saveAll( $msg_list);
 			$ret['msg_ids'] = array_column( $msg_list,'msg_id');
+			$manage_project_member -> saveAll( $mpm_arr);
 			Db::commit();
 		}catch(\Exception $e){
 			Db::rollback();

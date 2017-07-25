@@ -139,7 +139,7 @@ class Collect extends Controller{
 	public function del_collect(){
 		$ret = [
 			'r' => 0,
-			'msg' => '收藏成功',
+			'msg' => '取消收藏成功',
 		];
 		$encrypt = new Encrypt;
 		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
