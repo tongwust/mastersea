@@ -22,6 +22,16 @@ class ProjectTag extends Model{
 		$res = Db::query( $sql);
 		return $res;
 	}
+	
+	public function delete_project_tag($project_id, $themeid, $level){
+		$sql = 'DELETE pt 
+				FROM project_tag AS pt 
+					INNER JOIN tag AS t ON pt.tag_id = t.tag_id
+				WHERE pt.project_id = :project_id && t.themeid = :themeid && t.level = :level';
+		$res = Db::query($sql , ['project_id'=> $project_id, 'themeid' => $themeid, 'level' => $level]);
+		
+		return $res;
+	}
 }
 
 ?>

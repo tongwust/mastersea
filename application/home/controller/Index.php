@@ -73,84 +73,84 @@ class Index extends Controller
 //		$this -> ImageCode( $checkCode, 60);// 显示GIF动画
 //		return json_encode( $ret);
     }
-/** 
-*ImageCode 生成包含验证码的GIF图片的函数 
-*@param $string 字符串 
-*@param $width 宽度 
-*@param $height 高度 
-**/
-public function ImageCode($string='',$width=75,$height=25){ 
- 	$authstr=$string?$string:((time()%2==0)?mt_rand(1000,9999):mt_rand(10000,99999)); 
-  	$board_width=$width; 
-  	$board_height=$height; 
-  	// 生成一个32帧的GIF动画 
-  	for($i=0;$i<32;$i++){
-    	ob_start(); 
-    	$image=imagecreate($board_width,$board_height); 
-    	imagecolorallocate($image,0,0,0); 
-	    // 设定文字颜色数组 
-	    $colorList[]=ImageColorAllocate($image,15,73,210); 
-	    $colorList[]=ImageColorAllocate($image,0,64,0); 
-	    $colorList[]=ImageColorAllocate($image,0,0,64); 
-	    $colorList[]=ImageColorAllocate($image,0,128,128); 
-	    $colorList[]=ImageColorAllocate($image,27,52,47); 
-	    $colorList[]=ImageColorAllocate($image,51,0,102); 
-	    $colorList[]=ImageColorAllocate($image,0,0,145); 
-	    $colorList[]=ImageColorAllocate($image,0,0,113); 
-	    $colorList[]=ImageColorAllocate($image,0,51,51); 
-	    $colorList[]=ImageColorAllocate($image,158,180,35); 
-	    $colorList[]=ImageColorAllocate($image,59,59,59); 
-	    $colorList[]=ImageColorAllocate($image,0,0,0); 
-	    $colorList[]=ImageColorAllocate($image,1,128,180); 
-	    $colorList[]=ImageColorAllocate($image,0,153,51); 
-	    $colorList[]=ImageColorAllocate($image,60,131,1); 
-	    $colorList[]=ImageColorAllocate($image,0,0,0); 
-	    $fontcolor=ImageColorAllocate($image,0,0,0); 
-	    $gray=ImageColorAllocate($image,245,245,245); 
-	    $color=imagecolorallocate($image,255,255,255); 
-	    $color2=imagecolorallocate($image,255,0,0); 
-	    imagefill($image,0,0,$gray); 
-	    $space=15;// 字符间距 
-	    if($i>0){// 屏蔽第一帧 
-	      $top=0; 
-	      for($k=0;$k<strlen($authstr);$k++){ 
-	        $colorRandom=mt_rand(0,sizeof($colorList)-1); 
-	        $float_top=rand(0,4); 
-	        $float_left=rand(0,3); 
-	        imagestring($image,6,$space*$k,$top+$float_top,substr($authstr,$k,1),$colorList[$colorRandom]); 
-	      } 
-	    } 
-	    for($k=0;$k<20;$k++){ 
-	      	$colorRandom=mt_rand(0,sizeof($colorList)-1); 
-	     	imagesetpixel($image,rand()%70,rand()%15,$colorList[$colorRandom]); 
-	    
-	    } 
-	    // 添加干扰线 
-	    for($k=0;$k<3;$k++){ 
-	      $colorRandom=mt_rand(0,sizeof($colorList)-1); 
-	      $todrawline=1; 
-	      if($todrawline){ 
-	        imageline($image,mt_rand(0,$board_width),mt_rand(0,$board_height),mt_rand(0,$board_width),mt_rand(0,$board_height),$colorList[$colorRandom]); 
-	      }else{ 
-	        $w=mt_rand(0,$board_width); 
-	        $h=mt_rand(0,$board_width); 
-	        imagearc($image,$board_width-floor($w / 2),floor($h / 2),$w,$h, rand(90,180),rand(180,270),$colorList[$colorRandom]); 
-	      } 
-	    } 
-	    imagegif($image); 
-	    imagedestroy($image); 
-	    $imagedata[]=ob_get_contents(); 
-	    ob_clean(); 
-	    ++$i; 
+	/** 
+	*ImageCode 生成包含验证码的GIF图片的函数 
+	*@param $string 字符串 
+	*@param $width 宽度 
+	*@param $height 高度 
+	**/
+	public function ImageCode($string='',$width=75,$height=25){ 
+	 	$authstr=$string?$string:((time()%2==0)?mt_rand(1000,9999):mt_rand(10000,99999)); 
+	  	$board_width=$width; 
+	  	$board_height=$height; 
+	  	// 生成一个32帧的GIF动画 
+	  	for($i=0;$i<32;$i++){
+	    	ob_start(); 
+	    	$image=imagecreate($board_width,$board_height); 
+	    	imagecolorallocate($image,0,0,0); 
+		    // 设定文字颜色数组 
+		    $colorList[]=ImageColorAllocate($image,15,73,210); 
+		    $colorList[]=ImageColorAllocate($image,0,64,0); 
+		    $colorList[]=ImageColorAllocate($image,0,0,64); 
+		    $colorList[]=ImageColorAllocate($image,0,128,128); 
+		    $colorList[]=ImageColorAllocate($image,27,52,47); 
+		    $colorList[]=ImageColorAllocate($image,51,0,102); 
+		    $colorList[]=ImageColorAllocate($image,0,0,145); 
+		    $colorList[]=ImageColorAllocate($image,0,0,113); 
+		    $colorList[]=ImageColorAllocate($image,0,51,51); 
+		    $colorList[]=ImageColorAllocate($image,158,180,35); 
+		    $colorList[]=ImageColorAllocate($image,59,59,59); 
+		    $colorList[]=ImageColorAllocate($image,0,0,0); 
+		    $colorList[]=ImageColorAllocate($image,1,128,180); 
+		    $colorList[]=ImageColorAllocate($image,0,153,51); 
+		    $colorList[]=ImageColorAllocate($image,60,131,1); 
+		    $colorList[]=ImageColorAllocate($image,0,0,0); 
+		    $fontcolor=ImageColorAllocate($image,0,0,0); 
+		    $gray=ImageColorAllocate($image,245,245,245); 
+		    $color=imagecolorallocate($image,255,255,255); 
+		    $color2=imagecolorallocate($image,255,0,0); 
+		    imagefill($image,0,0,$gray); 
+		    $space=15;// 字符间距 
+		    if($i>0){// 屏蔽第一帧 
+		      $top=0; 
+		      for($k=0;$k<strlen($authstr);$k++){ 
+		        $colorRandom=mt_rand(0,sizeof($colorList)-1); 
+		        $float_top=rand(0,4); 
+		        $float_left=rand(0,3); 
+		        imagestring($image,6,$space*$k,$top+$float_top,substr($authstr,$k,1),$colorList[$colorRandom]); 
+		      } 
+		    } 
+		    for($k=0;$k<20;$k++){ 
+		      	$colorRandom=mt_rand(0,sizeof($colorList)-1); 
+		     	imagesetpixel($image,rand()%70,rand()%15,$colorList[$colorRandom]); 
+		    
+		    } 
+		    // 添加干扰线 
+		    for($k=0;$k<3;$k++){ 
+		      $colorRandom=mt_rand(0,sizeof($colorList)-1); 
+		      $todrawline=1; 
+		      if($todrawline){ 
+		        imageline($image,mt_rand(0,$board_width),mt_rand(0,$board_height),mt_rand(0,$board_width),mt_rand(0,$board_height),$colorList[$colorRandom]); 
+		      }else{ 
+		        $w=mt_rand(0,$board_width); 
+		        $h=mt_rand(0,$board_width); 
+		        imagearc($image,$board_width-floor($w / 2),floor($h / 2),$w,$h, rand(90,180),rand(180,270),$colorList[$colorRandom]); 
+		      } 
+		    } 
+		    imagegif($image); 
+		    imagedestroy($image); 
+		    $imagedata[]=ob_get_contents(); 
+		    ob_clean(); 
+		    ++$i; 
+		}
+		$gif = new GIFEncoder($imagedata);
+		Header('Content-type:image/gif');
+		echo base64_encode( $gif->GetAnimation());
 	}
-	$gif = new GIFEncoder($imagedata);
-	Header('Content-type:image/gif');
-	echo base64_encode( $gif->GetAnimation());
-}
     public function check_username(){
     	$ret = [
-			'r' => -1,
-			'msg' => '',
+			'r' => 0,
+			'msg' => '可用',
 		];
 		$encrypt = new Encrypt;
 		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
@@ -160,20 +160,45 @@ public function ImageCode($string='',$width=75,$height=25){
 			exit;
 		}
 		$user = model('User');
-		if( $input('name') == ''){
+		if( input('name') == ''){
 			$ret['msg'] = '用户名不能为空';
 			return json_encode($ret);
 			exit;
 		}
-		if(count($user->check_name($input('name'))) > 0){
-			$ret['r'] = 0;
+		if(count($user->check_name(input('name'))) > 0){
+			$ret['r'] = -1;
 			$ret['msg'] = '用户名已存在';
-		}else{
-			$ret['msg'] = '用户名可用';
 		}
 		return json_encode($ret);
-		exit;
     }
+    public function check_mobile(){
+    	$ret = [
+    		'r' => 0,
+    		'msg' => '可用',
+    	];
+    	$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		$mobile = trim(input('mobile'));
+		$pattern_mobile = '/^1[3|4|5|8][0-9]\d{8}$/';
+		if( !preg_match($pattern_mobile, $mobile) ){
+			$ret['r'] = -1;
+			$ret['msg'] = 'mobile 参数格式不符';
+			return json_encode($ret);
+			exit;
+		}
+    	$user_contact = model('UserContact');
+    	if( count($user_contact -> contact_is_exists( $mobile)) ){
+    		$ret['r'] = -2;
+    		$ret['msg'] = '此手机号已注册过';
+    	}
+    	return json_encode( $ret);
+    }
+    
     public function send_msg(){
     	$ret = [
 			'r' => -1,

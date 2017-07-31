@@ -12,9 +12,10 @@ class UserContact extends Model{
 		$user_id = input('user_id');
 		$sql = 'SELECT * FROM user_contact WHERE user_id = :user_id ORDER BY type ASC';
 		$res = Db::query($sql , ['user_id' => $user_id]);
-		return $res;
 		
+		return $res;
 	}
+	
 	public function del_user_contact_by_userid( $user_id){
 		$sql = 'DELETE 
 				FROM user_contact
@@ -23,6 +24,17 @@ class UserContact extends Model{
 		
 		return $res;
 	}
+	
+	public function contact_is_exists( $contact){
+		$sql = 'SELECT user_contact_id
+				FROM user_contact
+				WHERE contact = :contact';
+		$res = Db::query( $sql, ['contact' => $contact]);
+		
+		return $res;
+	}
+	
+	
 }
 
 ?>

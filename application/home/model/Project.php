@@ -11,7 +11,7 @@ class Project extends Model{
 		$sql = 'SELECT p.project_id,p.name,s.src_id,s.access_url,CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_339x387.",SUBSTRING_INDEX(s.access_url,".",-1)) AS origin_access_url
 				FROM project AS p LEFT JOIN src_relation AS sr ON  p.project_id = sr.relation_id && sr.type = 1
 					LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 3
-				WHERE p.project_id = :project_id && p.status != -1';
+				WHERE p.project_id = :project_id && p.status = 0';
 		$res = Db::query( $sql, ['project_id' => input('project_id')]);
 		
 		return $res;
@@ -52,7 +52,7 @@ class Project extends Model{
 					s.access_url as project_origin_access_url,CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_339x387.",SUBSTRING_INDEX(s.access_url,".",-1)) AS project_access_url
 				FROM project AS p LEFT JOIN src_relation sr ON p.project_id = sr.relation_id && sr.type = 1
 					 LEFT JOIN src s ON sr.src_id = s.src_id && s.type = 3
-				WHERE p.status != -1
+				WHERE p.status = 0
 				ORDER BY p.create_time DESC LIMIT '.$from.','.$page_size;
 		$res = Db::query( $sql );
 		
@@ -74,7 +74,7 @@ class Project extends Model{
 					s.src_name as project_img,s.path as project_path,s.access_url project_origin_access_url,CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_339x387.",SUBSTRING_INDEX(s.access_url,".",-1)) project_access_url
 				FROM project AS p LEFT JOIN src_relation sr ON p.project_id = sr.relation_id && sr.type = 1
 					 LEFT JOIN src s ON sr.src_id = s.src_id && s.type = 3
-				WHERE p.status != -1 && p.project_id in ('.$project_ids_str.') LIMIT '.$from.','.$page_size;
+				WHERE p.status = 0 && p.project_id in ('.$project_ids_str.') LIMIT '.$from.','.$page_size;
 		$res = Db::query( $sql );
 		return $res;
 	}

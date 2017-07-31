@@ -13,6 +13,37 @@ class Project extends Controller{
 		$view = new View();
 		return $view->fetch('./test/upload');
 	}
+	/****************office2pdf start**************************/
+	public function MakePropertyValue($name,$value,$osm){  
+	    $oStruct = $osm->Bridge_GetStruct("com.sun.star.beans.PropertyValue");  
+	    $oStruct->Name = $name;  
+	    $oStruct->Value = $value;  
+	    return $oStruct;  
+	}
+	public function word2pdf($doc_url, $output_url){  
+	    //Invoke the OpenOffice.org service manager  
+	        $osm = new COM("com.sun.star.ServiceManager") or die ("Please be sure that OpenOffice.org is installed.\n");  
+	    //Set the application to remain hidden to avoid flashing the document onscreen  
+	        $args = array($this->MakePropertyValue("Hidden",true,$osm));  
+	    //Launch the desktop  
+	        $top = $osm->createInstance("com.sun.star.frame.Desktop");  
+	    //Load the .doc file, and pass in the "Hidden" property from above  
+	    $oWriterDoc = $top->loadComponentFromURL($doc_url,"_blank", 0, $args);  
+	    //Set up the arguments for the PDF output  
+	    $export_args = array($this->MakePropertyValue("FilterName","writer_pdf_Export",$osm));  
+	    //Write out the PDF  
+	    $oWriterDoc->storeToURL($output_url,$export_args);  
+	    $oWriterDoc->close(true);  
+	}
+	public function test(){
+		set_time_limit(0);
+		$doc_file = "/home/soft/11.docx";  
+		$output_file = '/home/soft/11a.pdf';  
+		$command = 'java -jar /opt/jodconverter-2.2.2/lib/jodconverter-cli-2.2.2.jar '.$doc_file.' '.$output_file;
+		$res = exec($command);
+		echo 'ok';
+	}
+	/*********************office2pdf end ***************************/
 	public function my_show_project_task_list(){
 		$ret = [
 			'r' => 0,
@@ -487,6 +518,7 @@ class Project extends Controller{
 //		dump($ret);
 		return json_encode($ret);
 	}
+	
 	public function get_search_project_list(){
 		$ret = [
 			"r" => 0,
@@ -507,13 +539,18 @@ class Project extends Controller{
 		$project = model('Project');
 		$user_project_tag = model('UserProjectTag');
 		$project_atten = model('ProjectAttention');
-//		$project_tcs = new TcsQcloudApi( 58740002 );
 		if( empty($search_query) ){
 			$res = $project->get_latest_hot_project();
 			$project_id_arr = array_column( $res, 'project_id');
 			$project_ids_str = implode( ',', $project_id_arr);
-		}else{
+		}else if( $project_ids_str && $search_query ){
 			//search
+			$res = ($project_ids_str == '')?[]:$project -> getSearchProjects( $project_ids_str );
+		}else if( empty($project_ids_str) && $search_query){
+			$project_tcs = new TcsQcloudApi( 58740002 );
+			$res_json = $project_tcs -> yunsouDataSearch();
+			$data = json_decode( $res_json, true);
+			$project_ids_str = implode(',', array_column( isset($data['data']['result_list'])?$data['data']['result_list']:[], 'doc_id'));
 			$res = ($project_ids_str == '')?[]:$project -> getSearchProjects( $project_ids_str );
 		}
 		if( empty($project_ids_str) || $project_ids_str == ''){
@@ -653,15 +690,41 @@ class Project extends Controller{
 		}
 		$project_id = input('project_id');
 		$opt_id = input('opt_id');
-		$reg_date = '/^d{4}-d{2}-d{2} d{2}:d{2}:d{2}$/s';
-		if( $project_id <= 0 || $opt_id <= 0 || (input('project_start_time') != '' && preg_match( $reg_date, input('project_start_time')) == 0) || (input('project_end_time') != '' && preg_match( $reg_date, input('project_end_time')) == 0)){
+		$address = json_decode( input('address'), true);
+		$reg_date = '/^\d{4}-\d{2}-\d{2}$/';
+		if( $project_id <= 0 || $opt_id <= 0 || (input('project_start_time') != '' && preg_match( $reg_date, input('project_start_time')) == 0) || ( input('project_end_time') != '' && preg_match( $reg_date, input('project_end_time')) == 0)){
 			$ret['r'] = -1;
 			$ret['msg'] = '参数不符';
 			return json_encode( $ret );
 			exit;
 		}
+		$alist = [];
+		foreach( $address as $a){
+			if( !(isset($a['tag_id']) && $a['tag_id'] > 0) ){
+				$ret['r'] = -2;
+				$ret['msg'] = 'tag_id参数不符';
+				return json_encode($ret);
+				exit;
+			}
+			array_push($alist,['tag_id' => $a['tag_id'],'project_id' => $project_id]);
+		}
 		$project = model('Project');
-		$res = $project -> updateProjectById();
+		$project_tag = model('ProjectTag');
+		Db::startTrans();
+		try{
+			$project_tag -> delete_project_tag($project_id, 14, 3);//del address province
+    		$project_tag -> delete_project_tag($project_id, 14, 4);//del address city
+			if( count($alist) > 0 ){
+				$project_tag -> saveAll($alist);
+			}
+			$res = $project -> updateProjectById();	
+			Db::commit();
+		}catch( \Exception $e){
+			Db::rollback();
+			$ret['r'] = -3;
+			$ret['msg'] = '修改出错'.$e;
+		}
+		
 		return json_encode( $ret);
 	}
 	
@@ -915,10 +978,10 @@ class Project extends Controller{
 //				$project_task->data(['project_id'=>$project_id,'task_id'=>$task_id])->isUpdate(false)->save();
 //				$user_task->data(['user_id'=>$user_id,'task_id'=>$task_id])->isUpdate(false)->save();
 				$project_task_user -> data(['project_id' => $project_id,'task_id'=>$task_id,'user_id'=>$user_id]) -> isUpdate(false) -> save();
-
-				$info = pathinfo($tasks[$j]['resource_path']);
-				$path_arr = explode('/', $info['dirname']);
-				$src_arr = [
+				if( $tasks[$j]['resource_path'] != ''){
+					$info = pathinfo($tasks[$j]['resource_path']);
+					$path_arr = explode('/', $info['dirname']);
+					$src_arr = [
 							'src_name' => $info['basename'],
 							'type' => $tasks[$j]['type'],
 							'src_order' => $tasks[$j]['src_order'],
@@ -929,9 +992,21 @@ class Project extends Controller{
 							'source_url' => $tasks[$j]['source_url'],
 							'status' => $tasks[$j]['status']
 							];
+				}else{
+					$src_arr = [
+							'src_name' => $tasks[$j]['src_name'],
+							'type' => $tasks[$j]['type'],
+							'src_order' => $tasks[$j]['src_order'],
+							'path' => $tasks[$j]['path'],
+							'access_url' => $tasks[$j]['access_url'],
+							'resource_path' => $tasks[$j]['resource_path'],
+							'url' => $tasks[$j]['url'],
+							'source_url' => $tasks[$j]['source_url'],
+							'status' => 0
+							];
+				}
 				$src->data( $src_arr )->isUpdate(false)->save();
 				$src_id = $src->src_id;
-
 				$src_relation->data(['src_id'=>$src_id,'relation_id'=>$task_id,'type'=>2])->isUpdate(false)->save();
 			}
 //			$user_tim->group_create_group($project_id,'Public', $name, $user_id, 1);// create group - 1:work 2:life
@@ -939,33 +1014,13 @@ class Project extends Controller{
 			$ret['r'] = 0;
 			$ret['msg'] = '创建项目成功';
 			$ret['project_id'] = $project_id;
+			$this->add_search_key_by_project_id($project_id);
 		}catch( \Exception $e){
 			Db::rollback();
 			$ret['msg'] = '添加数据异常'.$e;
 		}
-		$this->add_search_key_by_project_id($project_id);
 		return json_encode($ret);
 	}
-	
-	
-	
-	public function upload(Request $request){
-		$ret = [
-			"r" => -1,
-			"msg" => ''
-		];
-		$user_id = input('user_id');
-		$files = request()->file('image');
-		if( is_array($files) ){
-			foreach($files as $file){
-				$info = $file->validate(['size'=>10*1024*1024,'ext'=>'jpg,png,gif,jpeg,bmp'])->move(ROOT_PATH.'public/upload/img/'.$user_id.'/');
-				
-			}
-		}else{
-			
-		}
-	}
-	
 	
 	
 }

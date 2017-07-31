@@ -12,7 +12,7 @@ class SrcRelation extends Model{
 		$sql = 'SELECT sr.relation_id as task_id,s.src_id,s.src_name,s.src_order,s.type as src_type,s.status as src_status,s.path,s.access_url origin_access_url,s.resource_path,
 					CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_865x579.",SUBSTRING_INDEX(s.access_url,".",-1)) access_url
 				FROM src_relation sr LEFT JOIN src s ON sr.src_id = s.src_id && sr.type = '.$type.'
-				WHERE (s.type = 1 || s.type = 5) && sr.relation_id in ('.$task_ids.')';
+				WHERE (s.type = 1 || (s.type > 4 && s.type <= 8) ) && sr.relation_id in ('.$task_ids.')';
 		$res = Db::query( $sql);
 		
 		return $res;

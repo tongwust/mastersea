@@ -77,8 +77,8 @@ class Collect extends Model{
 	public function myCollectProjectTaskList( $user_id, $from, $page_size){
 		$sql = 'SELECT c.cid as project_id,t.task_id,t.title,t.description,t.praise_num,t.collect_num,t.create_time,
 					   s.src_id,s.src_name,s.src_order,s.type src_type,s.path,s.access_url,s.resource_path,CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_865x579.",SUBSTRING_INDEX(s.access_url,".",-1)) AS origin_access_url
-				FROM collect AS c LEFT JOIN project AS p ON c.cid = p.project_id && p.status != -1
-					LEFT JOIN project_task_user AS ptu ON ptu.project_id = p.project_id
+				FROM collect AS c LEFT JOIN project AS p ON c.cid = p.project_id && p.status = 0
+					INNER JOIN project_task_user AS ptu ON ptu.project_id = p.project_id
 					LEFT JOIN task AS t ON ptu.task_id = t.task_id && t.status != -1
 					LEFT JOIN src_relation AS sr ON t.task_id = sr.relation_id && sr.type = 2
 					LEFT JOIN src AS s ON sr.src_id = s.src_id

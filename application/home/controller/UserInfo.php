@@ -189,9 +189,10 @@ class UserInfo extends Controller
 
 		$arr = [];
 		foreach($project_num_arr as $v){
-			$arr[$v['project_id']] = $v['user_id'];
+			
+			$arr[$v['user_id']] = isset($arr[$v['user_id']])?$arr[$v['user_id']] + 1:1;
 		}
-		$arr = array_count_values( $arr );
+//		$arr = array_count_values( $arr );
 		$tags = ($user_ids_str == '')?[]:$user_tag -> getTagsByUserIds($user_ids_str);
 		
     	$atten_num_arr = ($user_ids_str == '')?[]:$user_attention -> getAttenNumByUserids($user_ids_str);
@@ -268,9 +269,10 @@ class UserInfo extends Controller
     	$project_num_arr = ($user_ids_str == '')?[]:$user_project_tag -> getProjectNumByUserids($user_ids_str);
 		$arr = [];
 		foreach($project_num_arr as $v){
-			$arr[$v['project_id']] = $v['user_id'];
+			
+			$arr[$v['user_id']] = isset($arr[$v['user_id']])?$arr[$v['user_id']] + 1:1;
 		}
-		$arr = array_count_values( $arr );
+//		$arr = array_count_values( $arr );
 		$tags = ($user_ids_str == '')?[]:$user_tag -> getTagsByUserIds($user_ids_str);
     	$atten_num_arr = ($user_ids_str == '')?[]:$user_attention -> getAttenNumByUserids($user_ids_str);
 		$atten_arr = [];
@@ -383,7 +385,7 @@ class UserInfo extends Controller
     		foreach( $addr as $a){
     			if( $v['project_id'] == $a['project_id']){
     				unset($a['project_id']);
-    				array_push( $a['address'], $a);
+    				array_push( $v['address'], $a);
     			}
     		}
     		$v['member_num'] = empty($member_num_arr[$v['project_id']])?0:$member_num_arr[$v['project_id']]-1;
@@ -448,9 +450,10 @@ class UserInfo extends Controller
 //  	dump($project_num_arr);
 		$arr = [];
 		foreach($project_num_arr as $v){
-			$arr[$v['project_id']] = $v['user_id'];
+			
+			$arr[$v['user_id']] = isset($arr[$v['user_id']])?$arr[$v['user_id']] + 1:1;
 		}
-		$arr = array_count_values( $arr );
+//		$arr = array_count_values( $arr );
 //		$project_tags = [];
 		$tags = ($user_ids_str == '')?[]:$user_tag -> getTagsByUserIds($user_ids_str);
 		
@@ -691,7 +694,7 @@ class UserInfo extends Controller
     	if( $user_id > 0 ){
     		$position = $user_tag->get_tag_by_userid($user_id, 10, 3);
     		$skill = $user_tag->get_tag_by_userid($user_id, 11, 2);
-    		$concern = $user_tag->get_tag_by_userid($user_id, 10, 2);
+    		$concern = $user_tag->get_tag_by_userid($user_id, 9, 2);
     		$language = $user_tag->get_tag_by_userid($user_id, 13, 2);
     		$address = $user_tag -> get_tag_by_userid($user_id, 14, 4);
     		$result = $user_info->get_user_detail_by_id( $user_id);
@@ -868,7 +871,7 @@ class UserInfo extends Controller
 							}
 						}
 					}
-					if( count($skill_list) > 0){
+					if( count($concern_list) > 0){
 						$user_tag -> saveAll( $concern_list );
 					}
     			}
@@ -878,7 +881,7 @@ class UserInfo extends Controller
     		}catch(\Exception $e){
     			Db::rollback();
     			$result['r'] = -6;
-				$result['msg'] = '数据库错误!'.$e;
+				$result['msg'] = '插入数据出错!'.$e;
     		}
     	}else{
     		$result['msg'] = 'user_id不符合要求';

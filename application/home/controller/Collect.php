@@ -25,7 +25,6 @@ class Collect extends Controller{
 //		$user_id = input('user_id');
 		$from = empty(input('from'))?0:intval(input('from'));
 		$page_size = empty(input('page_size'))?10:intval(input('page_size'));
-		
 		if( !session('userinfo') ){
 			$ret['r'] = -100;
 			$ret['msg'] = '未登录';
@@ -34,15 +33,11 @@ class Collect extends Controller{
 		}else{
 			$user_id = session('userinfo')['user_id'];
 		}
-		
-//		$project_attention = model('ProjectAttention');
 		$comment = model('Comment');
 		$praise = model('Praise');
 		$collect = model('Collect');
-		
 //		$res = $project_attention -> myAttenProjectTasklist( $user_id, $from, $page_size);
 		$res = $collect -> myCollectProjectTaskList( $user_id, $from, $page_size);
-//		dump($res);
 		if( count($res) > 0){
 			$taskids_arr = array_column($res, 'task_id');//dump($taskids_arr);
 			$task_ids_str = implode(',', $taskids_arr);

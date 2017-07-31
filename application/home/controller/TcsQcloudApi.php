@@ -112,6 +112,7 @@ class TcsQcloudApi extends Controller{
 			$PRIVATE_PARAMS['contents.'.$k.'.createtime'] = $v['create_time'];
 		}
 		$res = $this->CreateRequest($COMMON_PARAMS, $PRIVATE_PARAMS);
+		trace('tcs_res',$res);
 		$ret['r'] = $res['retcode'];
 		$ret['msg'] = $res['errmsg'];
 		return json_encode($ret);
