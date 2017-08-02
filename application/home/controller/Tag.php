@@ -59,6 +59,7 @@ class Tag extends Controller{
 		$tag_tcs = new TcsQcloudApi(59630002);
 		
 		$res = $tag_tcs -> yunsouDataSearch();
+		
 		return $res;
 	}
 	//add tag

@@ -589,21 +589,29 @@ class Index extends Controller
 				display: block;
 				content: "";
 			}
+			a{
+				text-decoration: none;
+			}
+			body{
+				background-color: #e5e5e5;
+			}
 			.wrap{
 				width: 100%;
 				margin: 0 auto;
+				background-color: #e5e5e5;
 			}
 			.content{
 				width: 1000px;
-				margin: 115px auto 0;
+				margin: 5px auto;
+				padding-top: 90px;
 				text-align: center;
+				background-color: white;
 			}
 			.hr{
-				width: 800px;
-				margin-left: 100px;
+				width: 1000px;
 				margin-top: 75px;
 				margin-bottom: 55px;
-				border-bottom: 1px solid #e8eaec;
+				border-bottom: 5px solid #e5e5e5;
 			}
 			.friends{
 				font-size: 24px;
@@ -655,26 +663,34 @@ class Index extends Controller
 				margin-bottom: 25px;
 			}
 			.prohr{
-				width: 800px;
+				width: 1000px;
 				margin-bottom: 65px;
-				margin-left: 100px;
-				border-bottom: 1px solid #e8eaec;
+				border-bottom: 5px solid #e5e5e5;
 			}
 			.proMar{
 				font-size: 22px;
 				margin-bottom: 55px;
 			}
-			.btn{
+			button{
 				width: 322px;
 				height: 56px;
+				border: 0;
+				outline: none;
 				border-radius: 28px;
-				margin-left: 339px;
 				margin-bottom: 82px;
 				color: white;
+				cursor: pointer;
 				font-size: 26px;
 				line-height: 56px;
 				background-image: -webkit-linear-gradient(to top, #e61a62, #e93b38);
 				background-image: linear-gradient(to top, #e61a62, #e93b38);
+			}
+			button a{
+				color: white;
+				width: 322px;
+				height: 56px;
+				border-radius: 28px;
+				text-decoration: none;
 			}
 		</style>';
 		$str = $str . '<div class="wrap">
@@ -699,7 +715,7 @@ class Index extends Controller
 							<p class="projectMsg">项目组目前已经有<span class="userName">'.(isset($member_num[0]['member_num'])?$member_num[0]['member_num']:0).'</span>位成员。</p>
 							<p class="proMar">在这里，你可以分享你的一切精彩内容！马上加入吧？</p>
 							<div class="prohr"></div>
-							<div class="btn"><a id="pro_link" href="www.mastersea.com:8090/project/show?project_id='.$project_id.'" target="_blank">马上加入</a></div>
+							<button><a id="pro_link" href="http://123.206.33.53/project/show?project_id='.$project_id.'" style="text-decoration:none" target="_blank">马上加入</a></button>
 						</div>
 					</div>';
         $subject='邀请';

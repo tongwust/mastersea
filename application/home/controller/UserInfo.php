@@ -84,6 +84,8 @@ class UserInfo extends Controller
     			$v['user_name'] = $users[ $v['project_id'] ]['username'];
     			$v['user_src_id'] = $users[ $v['project_id'] ]['src_id'];
     			$v['user_access_url'] = $users[ $v['project_id'] ]['access_url'];
+    			$pos = strrpos($v['project_origin_access_url'], '.');
+    			$v['project_access_url'] = ( $pos > 0)?substr( $v['project_origin_access_url'], 0, $pos).'_339x387'.substr( $v['project_origin_access_url'], $pos):'';
     		}else{
     			unset( $res[$k] );
     		}
@@ -144,6 +146,8 @@ class UserInfo extends Controller
     			$v['user_name'] = $users[ $v['project_id'] ]['username'];
     			$v['user_src_id'] = $users[ $v['project_id'] ]['src_id'];
     			$v['user_access_url'] = $users[ $v['project_id'] ]['access_url'];
+    			$pos = strrpos($v['project_origin_access_url'], '.');
+    			$v['project_access_url'] = ( $pos > 0)?substr( $v['project_origin_access_url'], 0, $pos).'_339x387'.substr( $v['project_origin_access_url'], $pos):'';
     		}else{
     			unset( $res[$k] );
     		}
@@ -218,7 +222,10 @@ class UserInfo extends Controller
     			if( $v['user_id'] == $ps['user_id']){
     				$v['project_id'] = $ps['project_id'];
     				$v['project_src_id'] = $ps['project_src_id'];
-    				$v['project_access_url'] = $ps['project_access_url'];
+    				$v['project_origin_access_url'] = $ps['project_origin_access_url'];
+    				$pos = strrpos($ps['project_origin_access_url'], '.');
+					$v['project_access_url'] = ( $pos > 0)?substr( $ps['project_origin_access_url'], 0, $pos).'_339x387'.substr( $ps['project_origin_access_url'], $pos):'';
+
     				break;
     			}
     		}
@@ -306,7 +313,9 @@ class UserInfo extends Controller
     			if( $v['user_id'] == $ps['user_id']){
     				$v['project_id'] = $ps['project_id'];
     				$v['project_src_id'] = $ps['project_src_id'];
-    				$v['project_access_url'] = $ps['project_access_url'];
+    				$v['project_origin_access_url'] = $ps['project_origin_access_url'];
+    				$pos = strrpos($ps['project_origin_access_url'], '.');
+					$v['project_access_url'] = ( $pos > 0)?substr( $ps['project_origin_access_url'], 0, $pos).'_339x387'.substr( $ps['project_origin_access_url'], $pos):'';
     				break;
     			}
     		}
@@ -378,6 +387,14 @@ class UserInfo extends Controller
     		foreach( $tasks as $t){
     			if( $v['project_id'] == $t['project_id']){
     				unset( $t['project_id']);
+    				if( $t['src_type'] == 1 ){
+						$pos = strrpos($t['origin_access_url'], '.');
+						if( $pos > 0){
+							$t['access_url'] = substr( $t['origin_access_url'], 0, $pos).'_865x579'.substr( $t['origin_access_url'], $pos);
+						}
+					}else{
+						$t['access_url'] = $t['origin_access_url'];
+					}
     				array_push( $v['task'], $t);
     			}
     		}
@@ -601,6 +618,8 @@ class UserInfo extends Controller
 //  				$v['pcoll_num'] = $v['pcoll_num'] + 1;
     			}
     		}
+    		$pos = strrpos($v['project_origin_access_url'], '.');
+			$v['project_access_url'] = ( $pos > 0)?substr( $v['project_origin_access_url'], 0, $pos).'_339x387'.substr( $v['project_origin_access_url'], $pos):'';
     	}
 //  	dump($res);
     	$ret['pinfo'] = $res;

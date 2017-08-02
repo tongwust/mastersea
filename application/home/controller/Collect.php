@@ -36,7 +36,6 @@ class Collect extends Controller{
 		$comment = model('Comment');
 		$praise = model('Praise');
 		$collect = model('Collect');
-//		$res = $project_attention -> myAttenProjectTasklist( $user_id, $from, $page_size);
 		$res = $collect -> myCollectProjectTaskList( $user_id, $from, $page_size);
 		if( count($res) > 0){
 			$taskids_arr = array_column($res, 'task_id');//dump($taskids_arr);
@@ -61,6 +60,14 @@ class Collect extends Controller{
 					if($t['task_id'] == $c['cid']){
 						array_push($t['comment'], $c);
 					}
+				}
+				if( $t['src_type'] == 1 ){
+					$pos = strrpos($t['origin_access_url'], '.');
+					if( $pos > 0){
+						$v['access_url'] = substr( $t['origin_access_url'], 0, $pos).'_865x579'.substr( $t['origin_access_url'], $pos);
+					}
+				}else{
+					$v['access_url'] = $t['origin_access_url'];
 				}
 				$t['login']['is_praise'] = isset($task_praise[$t['task_id']])?1:0;
 				$t['login']['is_collect'] = isset($task_collect[$t['task_id']])?1:0;

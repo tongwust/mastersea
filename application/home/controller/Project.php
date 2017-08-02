@@ -105,6 +105,14 @@ class Project extends Controller{
 						array_push($t['comment'], $c);
 					}
 				}
+				if( $t['src_type'] == 1 ){
+					$pos = strrpos($t['origin_access_url'], '.');
+					if( $pos > 0){
+						$t['access_url'] = substr( $t['origin_access_url'], 0, $pos).'_865x579'.substr( $t['origin_access_url'], $pos);
+					}
+				}else{
+					$t['access_url'] = $t['origin_access_url'];
+				}
 				$t['login']['is_praise'] = isset($task_praise[$t['task_id']])?1:0;
 				$t['login']['is_collect'] = isset($task_collect[$t['task_id']])?1:0;
 			}
@@ -786,6 +794,14 @@ class Project extends Controller{
 					$v['collect_num'] = isset($collect_arr[$v['task_id']])?$collect_arr[$v['task_id']]:0;
 					foreach($src_arr as $value){
 						if($value['task_id'] == $v['task_id']){
+							if( $value['src_type'] == 1 ){
+								$pos = strrpos($value['origin_access_url'], '.');
+								if( $pos > 0){
+									$v['access_url'] = substr( $value['origin_access_url'], 0, $pos).'_865x579'.substr( $value['origin_access_url'], $pos);
+								}
+							}else{
+								$v['access_url'] = $value['origin_access_url'];
+							}
 							$v = array_merge( $v, $value);
 							break;
 						}

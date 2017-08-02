@@ -70,6 +70,14 @@ class ProjectAttention extends Controller{
 						array_push($t['comment'], $c);
 					}
 				}
+				if( $t['src_type'] == 1 ){
+					$pos = strrpos($t['origin_access_url'], '.');
+					if( $pos > 0){
+						$t['access_url'] = substr( $t['origin_access_url'], 0, $pos).'_865x579'.substr( $t['origin_access_url'], $pos);
+					}
+				}else{
+					$t['access_url'] = $t['origin_access_url'];
+				}
 				$t['login']['is_praise'] = isset($task_praise[$t['task_id']])?1:0;
 				$t['login']['is_collect'] = isset($task_collect[$t['task_id']])?1:0;
 			}

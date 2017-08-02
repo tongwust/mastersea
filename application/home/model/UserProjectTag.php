@@ -25,7 +25,7 @@ class UserProjectTag extends Model{
 		
 		$sql = 'SELECT DISTINCT(upt.project_id),upt.tag_id,upt.create_time,ti.name tag_name,
 							p.name,p.collect_num,p.project_start_time,p.project_end_time,p.duty,
-							s.src_id project_src_id,s.access_url project_access_url
+							s.src_id project_src_id,s.access_url project_origin_access_url
 				FROM user_project_tag AS upt INNER JOIN project AS p ON upt.project_id = p.project_id && p.status = 0
 											 LEFT JOIN src_relation AS sr ON sr.relation_id = p.project_id && sr.type = 1
 											 LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 3
@@ -254,7 +254,7 @@ class UserProjectTag extends Model{
 	
 	public function getProjectCoverByUserids($user_ids_str){
 		
-		$sql = 'SELECT DISTINCT(upt.project_id),upt.user_id,s.src_id project_src_id,s.access_url project_access_url,upt.create_time
+		$sql = 'SELECT DISTINCT(upt.project_id),upt.user_id,s.src_id project_src_id,s.access_url project_origin_access_url,upt.create_time
 				FROM user_project_tag AS upt LEFT JOIN src_relation AS sr ON upt.project_id = sr.relation_id && sr.type = 1
 											 LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 3
 				WHERE upt.user_type=1 && upt.user_id in('.$user_ids_str.')
@@ -267,14 +267,13 @@ class UserProjectTag extends Model{
 	public function myShowProjectTasklist( $from, $page_size){
 		
 		$sql = 'SELECT DISTINCT(t.task_id),upt.project_id,t.title,t.description,t.status,t.praise_num,t.collect_num,t.create_time,
-						s.src_id,s.src_name,s.src_order,s.type src_type,s.status src_status,s.path,s.resource_path,s.access_url,
-						CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_865x579.",SUBSTRING_INDEX(s.access_url,".",-1)) AS origin_access_url
+						s.src_id,s.src_name,s.src_order,s.type src_type,s.status src_status,s.path,s.resource_path,s.access_url origin_access_url
 				FROM user_project_tag AS upt 
 					INNER JOIN project AS p ON upt.project_id = p.project_id && p.status = 0
 					INNER JOIN project_task_user AS ptu ON p.project_id = ptu.project_id
 					LEFT JOIN task AS t ON ptu.task_id = t.task_id
 					LEFT JOIN src_relation AS sr ON sr.relation_id = t.task_id && sr.type = 2
-					LEFT JOIN src AS s ON s.src_id = sr.src_id && s.type = 1
+					LEFT JOIN src AS s ON s.src_id = sr.src_id
 				WHERE upt.user_id = :user_id && upt.user_type = 1
 					ORDER BY t.create_time DESC
 					LIMIT :from,:page_size';
