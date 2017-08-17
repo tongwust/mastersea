@@ -56,7 +56,7 @@ class Tag extends Controller{
 	//search tag
 	public function search_tags(){
 		
-		$tag_tcs = new TcsQcloudApi(59630002);
+		$tag_tcs = new TcsQcloudApi(YUNSOU_TAGS);
 		
 		$res = $tag_tcs -> yunsouDataSearch();
 		
@@ -76,7 +76,7 @@ class Tag extends Controller{
 			return json_encode($ret);
 			exit;
 		}
-		$tcs_qcloud_api = new TcsQcloudApi( 59630002);
+		$tcs_qcloud_api = new TcsQcloudApi( YUNSOU_TAGS);
 		
 		$res = $tcs_qcloud_api -> yunsouDataManipulation();
 		$res = json_decode( $res, true);
@@ -86,7 +86,22 @@ class Tag extends Controller{
 		}
 		return json_encode( $ret);
 	}
-	
+	public function test_add_tags(){
+		$ret = [
+			'r' => 0,
+			'msg' => 'add success',
+		];
+		
+		$tcs_qcloud_api = new TcsQcloudApi( YUNSOU_TAGS);
+		
+		$res = $tcs_qcloud_api -> test_add_all_tags();
+		$res = json_decode( $res, true);
+		if($res['r'] != 0){
+			return json_encode($res);
+			exit;
+		}
+		return json_encode( $ret);
+	}
 	public function get_part_by_tagid_themeid(){
 		$ret = [
 			'r' => -1,

@@ -6,7 +6,14 @@ use think\Db;
 class Tag extends Model{
 	
 	protected $table = 'user';
-	
+	public function test_add_all_tags(){
+		$sql = 'SELECT ti.name,ti.tag_id as tagid,t.themeid
+				FROM tag AS t LEFT JOIN tag_info AS ti ON ti.tag_id = t.tag_id
+				WHERE t.pid != 0';
+		$res = Db::query( $sql);
+		
+		return $res;
+	}
 	public function get_tag_by_themeid(){
 		$tag_id = input('tag_id');
 		$themeid = input('themeid');

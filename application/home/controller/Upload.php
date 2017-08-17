@@ -25,10 +25,11 @@ class Upload extends Controller{
 		}else{
 			$user_id = session('userinfo')['user_id'];
 		}
+//		$user_id = 1;
 		// 获取表单上传文件
-	    $files = request()->file('files');
-	    $fnames = json_decode( input('fnames'), 'true');
-	    if( count($fnames) > 0 && count($fnames) == count($files) ){
+	    $files = request()->file("files");
+	    $fnames = explode(',',input('fnames'));
+	    if( count($fnames) == 0 || count($fnames) != count($files) ){
 	    	$ret['r'] = -1;
 	    	$ret['msg'] = 'fnames 参数不符';
 	    	return json_encode( $ret);
@@ -36,18 +37,19 @@ class Upload extends Controller{
 	    }
 	    set_time_limit(0);
 	    $i = 0;
+	    trace( $files, 'files');
 	    foreach($files as $file){
 	        // 移动到框架应用根目录/public/uploads/ 目录下
-	        $info = $file -> validate(['size'=>10*1024*1024,'ext'=>'doc,docx,xls,xlsx,ppt,pptx']) -> move(ROOT_PATH . 'public' . DS . 'upload');
+	        $info = $file -> validate(['size'=>50*1024*1024,'ext'=>'doc,docx,xls,xlsx,ppt,pptx,txt,rtf']) -> move(ROOT_PATH . 'public' . DS . 'upload');
 	        if( $info){
 	            // 成功上传后 获取上传信息
 	            try{
 	            	$doc_file = $info->getPathname();
 					$output_file = explode('.', $doc_file)[0].'.pdf';
 					$command = 'java -jar /opt/jodconverter-2.2.2/lib/jodconverter-cli-2.2.2.jar '.$doc_file.' '.$output_file;
-					exec($command);
+					$res = exec($command);
 					$cos = new Cos;
-					$res = $cos -> cos_upload($output_file, '/'.$user_id.'/'.$fnames[$i].'.pdf' );
+					$cos -> cos_upload($output_file, '/'.$user_id.'/'.$fnames[$i].'.pdf' );
 					unlink( $doc_file);
 					unlink( $output_file);
 				}catch( \Exception $e){

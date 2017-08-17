@@ -9,6 +9,18 @@
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
 
+//cos
+//define('COS_BUCKET','shiningonline');//online
+//yunsou
+//define('YUNSOU_TAGS',61230002);//online
+//define('YUNSOU_PRO',61220002);//online
+
+define('COS_BUCKET','shining');//test
+define('YUNSOU_TAGS',59630002);//test
+define('YUNSOU_PRO',58740002);//test
+
+
+
 return [
     // +----------------------------------------------------------------------
     // | 应用设置

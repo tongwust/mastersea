@@ -112,7 +112,7 @@ class TcsQcloudApi extends Controller{
 			$PRIVATE_PARAMS['contents.'.$k.'.createtime'] = $v['create_time'];
 		}
 		$res = $this->CreateRequest($COMMON_PARAMS, $PRIVATE_PARAMS);
-		trace('tcs_res',$res);
+		trace( $res, 'tcs_res');
 		$ret['r'] = $res['retcode'];
 		$ret['msg'] = $res['errmsg'];
 		return json_encode($ret);
@@ -130,14 +130,6 @@ class TcsQcloudApi extends Controller{
 			return json_encode($ret);
 			exit;
 		}
-//		if( !session('userinfo') ){
-//			$ret['r'] = -100;
-//			$ret['msg'] = '未登录';
-//			return json_encode( $ret);
-//			exit;
-//		}else{
-//			$user_id = session('userinfo')['user_id'];
-//		}
 		$tag_id = input('tag_id');
 		$themeid = input('themeid');
 		if( !($tag_id > 0 && $themeid > 0) ){
@@ -171,7 +163,43 @@ class TcsQcloudApi extends Controller{
 		$ret['msg'] = isset( $res['errmsg'])?$res['errmsg']:$res['message'];
 		return json_encode( $ret);
 	}
-	
+	public function test_add_all_tags(){
+		$ret = [
+			'r' => 0,
+			'msg' => '操作成功',
+		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		$op_type = (input('op_type'))?input('op_type'):'add';//default add
+		
+		$tag = model('Tag');
+		$COMMON_PARAMS = array(
+	        'Nonce'=> rand(),
+	        'Timestamp'=>time(NULL),
+	        'Action'=> 'DataManipulation',
+	        'SecretId'=> $this->secretId,
+	        'Region' => self::REGION,
+	        'op_type' => $op_type,
+	        'appId' => $this->appId,
+		);
+		$content = $tag->test_add_all_tags();
+		$PRIVATE_PARAMS = [];
+		foreach($content as $k => $v){
+			$PRIVATE_PARAMS['contents.'.$k.'.name'] = $v['name'];
+			$PRIVATE_PARAMS['contents.'.$k.'.tagid'] = $v['tagid'];
+			$PRIVATE_PARAMS['contents.'.$k.'.themeid'] = $v['themeid'];
+		}
+		$res = $this->CreateRequest( $COMMON_PARAMS, $PRIVATE_PARAMS);
+		//dump($res);
+		$ret['r'] = isset( $res['retcode'])?$res['retcode']:$res['code'];
+		$ret['msg'] = isset( $res['errmsg'])?$res['errmsg']:$res['message'];
+		return json_encode( $ret);
+	}
 	public function yunsouDataSearch(){
 		$ret = [
 			'r' => 0,

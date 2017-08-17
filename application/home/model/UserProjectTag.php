@@ -226,7 +226,7 @@ class UserProjectTag extends Model{
 	}
 	public function getUserProjectByUserids($user_ids_str){
 		
-		$sql = 'SELECT DISTINCT(upt.user_id),upt.project_id,upt.tag_id,upt.user_type,p.name project_name,ti.name as tag_name,s.access_url
+		$sql = 'SELECT DISTINCT(upt.user_id),upt.project_id,upt.tag_id,upt.user_type,p.name project_name,ti.name as tag_name,s.access_url origin_access_url
 				FROM user_project_tag as upt LEFT JOIN project as p ON upt.project_id = p.project_id
 					LEFT JOIN src_relation as sr ON sr.relation_id = p.project_id && sr.type = 1
 					LEFT JOIN src as s ON sr.src_id = s.src_id
@@ -266,7 +266,7 @@ class UserProjectTag extends Model{
 	
 	public function myShowProjectTasklist( $from, $page_size){
 		
-		$sql = 'SELECT DISTINCT(t.task_id),upt.project_id,t.title,t.description,t.status,t.praise_num,t.collect_num,t.create_time,
+		$sql = 'SELECT DISTINCT(t.task_id),ptu.user_id,upt.project_id,t.title,t.description,t.status,t.praise_num,t.collect_num,t.create_time,
 						s.src_id,s.src_name,s.src_order,s.type src_type,s.status src_status,s.path,s.resource_path,s.access_url origin_access_url
 				FROM user_project_tag AS upt 
 					INNER JOIN project AS p ON upt.project_id = p.project_id && p.status = 0

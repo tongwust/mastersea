@@ -355,16 +355,37 @@ class Project extends Controller{
 				$flag = (count($user_type_arr) > 0);
 			}
 			if( $flag ){//1.负责人 or myself
+				$cos = new Cos;
 				Db::startTrans();
 				try{
 					$user_project_tag -> deleteMemberFromProject();
-					$ret['path_list'] = $project_task_user -> getDeleteMemberSrc();
+					$path_list = $project_task_user -> getDeleteMemberSrc();
+					foreach($path_list as $pl){
+						//---/1253556758/shining/2/741a52443ba5f184522bc66b882a9c79.png
+						$resource_path = explode('/', $pl['resource_path']);
+						$resource_ext = explode('.', $pl['resource_path']);
+						if(count( $resource_path) == 5){
+							$dst = '/' .$resource_path[3]. '/'.$resource_path[4];
+							$cos_res = $cos -> cos_delfile( $dst);
+							if( $pl['type'] == 1){
+								$dst = '/' .$resource_path[3]. '/'.explode('.',$resource_path[4])[0].'_865x579.'.$resource_ext[1];
+								$cos_res = $cos -> cos_delfile( $dst);
+							}else if($pl['type'] == 3){
+								$dst = '/' .$resource_path[3]. '/'.explode('.',$resource_path[4])[0].'_339x387.'.$resource_ext[1];
+								$cos_res = $cos -> cos_delfile( $dst);
+							}else if($pl['type'] == 6){
+								$dst = '/' .$resource_path[3]. '/'.explode('.',$resource_path[4])[0].'.pdf';
+								$cos_res = $cos -> cos_delfile( $dst);
+							}
+							
+						}
+					}
 					$project_task_user -> deleteMemberFromTask();
 					Db::commit();
 				}catch(\Exception $e){
 					Db::rollback();
 					$ret['r'] = -3;
-					$ret['msg'] = '添加数据异常'.$e;
+					$ret['msg'] = '删除数据异常'.$e;
 				}
 			}else{
 				$ret['r'] = -2;
@@ -418,21 +439,19 @@ class Project extends Controller{
 	}
 	//yunsou添加项目内容 all
 	public function add_project_search_keys(){
-		header("Access-Control-Allow-Origin:*");
-    	header("Access-Control-Allow-Method:POST,GET");
 		
-		$project_tcs = new TcsQcloudApi(58740002);
+		$project_tcs = new TcsQcloudApi(YUNSOU_PRO);
 		
 		$res = $project_tcs -> projectDataManipulation();
 		
 		return json_encode($res);
 	}
 	
-	//向腾讯云添加 搜索记录
+	//向腾讯云添加 搜索记录 
 	public function add_search_key_by_project_id($project_id){
 //		$project_id = input('project_id');
 		
-		$project_tcs = new TcsQcloudApi(58740002);
+		$project_tcs = new TcsQcloudApi(YUNSOU_PRO);
 		
 		$project_tcs->DataManipulationByProjectId( $project_id );
 		
@@ -518,7 +537,7 @@ class Project extends Controller{
 			return json_encode($ret);
 			exit;
 		}
-		$project_tcs = new TcsQcloudApi( 58740002 );
+		$project_tcs = new TcsQcloudApi( YUNSOU_PRO );
 		$res_json = $project_tcs -> yunsouDataSearch();
 		$data = json_decode( $res_json, true);
 		$ret['r'] = $data['r'];
@@ -547,32 +566,27 @@ class Project extends Controller{
 		$project = model('Project');
 		$user_project_tag = model('UserProjectTag');
 		$project_atten = model('ProjectAttention');
-		if( empty($search_query) ){
+		if( empty($search_query) && empty($project_ids_str) ){
 			$res = $project->get_latest_hot_project();
 			$project_id_arr = array_column( $res, 'project_id');
 			$project_ids_str = implode( ',', $project_id_arr);
-		}else if( $project_ids_str && $search_query ){
+		}else if( !empty($project_ids_str) ){
 			//search
 			$res = ($project_ids_str == '')?[]:$project -> getSearchProjects( $project_ids_str );
-		}else if( empty($project_ids_str) && $search_query){
-			$project_tcs = new TcsQcloudApi( 58740002 );
+		}else if( !empty($search_query) ){
+			$project_tcs = new TcsQcloudApi( YUNSOU_PRO );
 			$res_json = $project_tcs -> yunsouDataSearch();
 			$data = json_decode( $res_json, true);
 			$project_ids_str = implode(',', array_column( isset($data['data']['result_list'])?$data['data']['result_list']:[], 'doc_id'));
 			$res = ($project_ids_str == '')?[]:$project -> getSearchProjects( $project_ids_str );
 		}
-		if( empty($project_ids_str) || $project_ids_str == ''){
-			$ret['msg'] = '数据为空';
-			return json_encode($ret);
-			exit;
-		}
-		$users = $user_project_tag -> get_user_info_by_project_ids( $project_ids_str );
-		$members = $user_project_tag -> get_project_members( $project_ids_str );
+		$users = empty($project_ids_str)?[]:$user_project_tag -> get_user_info_by_project_ids( $project_ids_str );
+		$members = empty($project_ids_str)?[]:$user_project_tag -> get_project_members( $project_ids_str );
 		$member_num_arr = array();
 		foreach( $members as $v){
 			$member_num_arr[$v['project_id']] = isset($member_num_arr[$v['project_id']])?$member_num_arr[$v['project_id']] + 1:1;
 		}
-		$atten_arr = $project_atten -> getProjectAttenNum($project_ids_str);
+		$atten_arr = empty($project_ids_str)?[]:$project_atten -> getProjectAttenNum($project_ids_str);
 		$arr = [];
 		foreach($atten_arr as $val){
 			$arr[$val['project_id']] = $val['atten_num'];

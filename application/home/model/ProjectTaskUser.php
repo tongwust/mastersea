@@ -42,7 +42,7 @@ class ProjectTaskUser extends Model{
 		return $res;
 	}
 	public function getDeleteMemberSrc(){
-		$sql = 'SELECT s.src_id,s.resource_path
+		$sql = 'SELECT s.src_id,s.resource_path,s.type
 				FROM project_task_user AS ptu LEFT JOIN task AS t ON ptu.task_id = t.task_id
 					LEFT JOIN src_relation AS sr ON t.task_id = sr.relation_id && sr.type = 2
 					LEFT JOIN src AS s ON sr.src_id = s.src_id

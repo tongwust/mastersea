@@ -9,14 +9,14 @@ use think\Cookie;
 class CosCloud extends Controller{
 	
 	public $appid = '1253556758';
-	public $bucket = 'shining';
+	public $bucket = COS_BUCKET;
 	public $region = 'tj';
 	
 	protected $secret_id;
 	protected $secret_key;
 	
 	const APPID = '1253556758';
-	const BUCKET = 'shining';
+	const BUCKET = COS_BUCKET;
 	const REGION = 'tj';
 	const SECRET_ID = 'AKIDSoqmX0Wk282oPswIH5hicT8br7DEDg7N';
 	const SECRET_KEY = 'DEC2hJk4B622r9QiokV7YoskQuDNPL8s';

@@ -498,7 +498,9 @@ class UserInfo extends Controller
     			if( $v['user_id'] == $ps['user_id']){
     				$v['project_id'] = $ps['project_id'];
     				$v['project_src_id'] = $ps['project_src_id'];
-    				$v['project_access_url'] = $ps['project_access_url'];
+    				$v['project_origin_access_url'] = $ps['project_origin_access_url'];
+    				$pos = strrpos($ps['project_origin_access_url'], '.');
+					$v['project_access_url'] = ( $pos > 0)?substr( $ps['project_origin_access_url'], 0, $pos).'_339x387'.substr( $ps['project_origin_access_url'], $pos):'';
     				break;
     			}
     		}
@@ -607,6 +609,9 @@ class UserInfo extends Controller
 						array_push($us['tags'],['tag_id' => $t['tag_id'],'tag_name'=>$t['tag_name']]);
 					}
     			}
+			}
+			if( count($us['tags']) == 0 ){
+				array_push( $us['tags'], ['tag_id' => '','tag_name' => '']);
 			}
 		}
     	foreach($res as &$v){

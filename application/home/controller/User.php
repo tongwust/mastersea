@@ -64,7 +64,9 @@ class User extends Controller{
 //					$v['src_name'] = $val['src_name'];
 //					$v['path'] = $val['path'];
 //					$v['resource_path'] = $val['resource_path'];
-					$v['access_url'] = $val['access_url'];
+					$v['origin_access_url'] = $val['origin_access_url'];
+					$pos = strrpos($val['origin_access_url'], '.');
+					$v['access_url'] = ( $pos > 0)?substr( $val['origin_access_url'], 0, $pos).'_339x387'.substr( $val['origin_access_url'], $pos):'';
 //					$v['source_url'] = $val['source_url'];
 //					$v['url'] = $val['url'];
 					$v['atten_num'] = empty($atten_arr[$v['user_id']])?'':$atten_arr[$v['user_id']];

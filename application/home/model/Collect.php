@@ -83,7 +83,7 @@ class Collect extends Model{
 					LEFT JOIN src_relation AS sr ON t.task_id = sr.relation_id && sr.type = 2
 					LEFT JOIN src AS s ON sr.src_id = s.src_id
 				WHERE c.user_id = :user_id && c.type = 1
-						LIMIT :from,:page_size';
+						ORDER BY c.create_time DESC LIMIT :from,:page_size';
 		$res = Db::query( $sql, [ 'user_id' => $user_id, 'from'=> $from, 'page_size' => $page_size]);
 		
 		return $res;
