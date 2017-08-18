@@ -110,7 +110,7 @@ class UserProjectTag extends Model{
 		$user_id = input('user_id');
 		
 		$sql = 'SELECT upt.tag_id,ti.name AS tag_name,upt.user_type
-				FROM user_project_tag AS upt LEFT JOIN tag_info AS ti ON upt.tag_id = ti.tag_id
+				FROM user_project_tag AS upt LEFT JOIN tag_info AS ti ON (upt.tag_id = ti.tag_id || upt.tag_id = 0)
 				WHERE upt.user_id = :user_id && upt.project_id = :project_id';
 		$res = Db::query( $sql, ['user_id' => $user_id,'project_id' => $project_id]);
 		
@@ -231,7 +231,7 @@ class UserProjectTag extends Model{
 					LEFT JOIN src_relation as sr ON sr.relation_id = p.project_id && sr.type = 1
 					LEFT JOIN src as s ON sr.src_id = s.src_id
 					LEFT JOIN user_tag as ut ON upt.user_id = ut.user_id
-					INNER JOIN tag as t ON ut.tag_id = t.tag_id && t.themeid = 10
+					LEFT JOIN tag as t ON ut.tag_id = t.tag_id && t.themeid = 10
 					LEFT JOIN tag_info as ti ON t.tag_id = ti.tag_id
 				WHERE upt.user_id in ('.$user_ids_str.') && upt.user_type = 1
 					 GROUP BY upt.user_id';

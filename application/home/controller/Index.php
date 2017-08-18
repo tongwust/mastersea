@@ -506,7 +506,7 @@ class Index extends Controller
 	public function user_logout(){
 
 		$ret = [
-			'r' => -1,
+			'r' => 0,
 			'msg' => '',
 		];
 		$encrypt = new Encrypt;
@@ -518,7 +518,6 @@ class Index extends Controller
 		}
 //		cache(session('userinfo.user_id'), NULL);
 		session('userinfo', NULL);
-		$ret['r'] = 0;
 		return json_encode($ret);
 	}
 	

@@ -49,9 +49,13 @@ class User extends Controller{
 		$project_num_arr = ($user_ids_str == '')?[]:$user_project_tag -> getProjectNumByUserids($user_ids_str);
 		$arr = [];
 		foreach($project_num_arr as $v){
-			$arr[$v['project_id']] = $v['user_id'];
+			
+			$arr[$v['user_id']] = isset($arr[$v['user_id']])?$arr[$v['user_id']] + 1:1;
 		}
-		$arr = array_count_values( $arr );
+//		foreach($project_num_arr as $v){
+//			$arr[$v['project_id']] = $v['user_id'];
+//		}
+//		$arr = array_count_values( $arr );
 //		dump($arr);
 		foreach( $res as $k => &$v){
 			foreach( $projects as $val){
@@ -69,8 +73,9 @@ class User extends Controller{
 					$v['access_url'] = ( $pos > 0)?substr( $val['origin_access_url'], 0, $pos).'_339x387'.substr( $val['origin_access_url'], $pos):'';
 //					$v['source_url'] = $val['source_url'];
 //					$v['url'] = $val['url'];
-					$v['atten_num'] = empty($atten_arr[$v['user_id']])?'':$atten_arr[$v['user_id']];
-					$v['project_num'] = empty($arr[$v['user_id']])?'':$arr[$v['user_id']];
+					$v['atten_num'] = empty($atten_arr[$v['user_id']])?0:$atten_arr[$v['user_id']];
+//					$v['project_num'] = empty($arr[$v['user_id']])?0:$arr[$v['user_id']];
+					$v['project_num'] = empty($arr[intval($v['user_id'])])?0:$arr[intval($v['user_id'])];
 					break;
 				}
 			}

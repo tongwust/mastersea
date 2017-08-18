@@ -64,31 +64,27 @@ class Task extends Controller{
 		}else{
 			$opt_id = session('userinfo')['user_id'];
 		}
-		$task_id = input('task_id');
-		$project_id = input('project_id');
-		if( $task_id <= 0 || $project_id <= 0 || $opt_id <= 0){
+		$task_ids = input('task_id');
+		if( $task_ids == '' || $opt_id <= 0){
 			$ret['r'] = -1;
 			$ret['msg'] = '参数不符';
 			return json_encode( $ret );
 			exit;
 		}
+		$project_task_user = model('ProjectTaskUser');
+//		$task = model('Task');
+		$src_relation = model('SrcRelation');
 		Db::startTrans();
 		try{
-			$project_task_user = model('ProjectTaskUser');
-			$task = model('Task');
-			$src_relation = model('SrcRelation');
-			
-			$project_task_user->deleteByTaskid();
-			$task->deleteByTaskid();
-			$src_relation->deleteByTaskid();
-			
+			$project_task_user -> deleteByTaskid( $task_ids);
+//			$task->deleteByTaskid();
+			$src_relation -> deleteByTaskid( $task_ids);
 			Db::commit();
 		}catch(\Exception $e){
 			$ret['r'] = -2;
 			$ret['msg'] = $e;
 			Db::rollback();
 		}
-		
 		return json_encode( $ret );
 	}
 	

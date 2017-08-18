@@ -8,7 +8,7 @@ class Project extends Model{
 	protected $table = 'project';
 	
 	public function getProjectPartInfo(){
-		$sql = 'SELECT p.project_id,p.name,s.src_id,s.access_url,CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_339x387.",SUBSTRING_INDEX(s.access_url,".",-1)) AS origin_access_url
+		$sql = 'SELECT p.project_id,p.name,s.src_id,s.access_url origin_access_url,CONCAT(SUBSTRING_INDEX(s.access_url,".",4),"_339x387.",SUBSTRING_INDEX(s.access_url,".",-1)) AS access_url
 				FROM project AS p LEFT JOIN src_relation AS sr ON  p.project_id = sr.relation_id && sr.type = 1
 					LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 3
 				WHERE p.project_id = :project_id && p.status = 0';

@@ -63,13 +63,12 @@ class SrcRelation extends Model{
 		return $res;
 	}
 	
-	public function deleteByTaskid(){
+	public function deleteByTaskid( $task_ids){
 		
 		$sql = 'DELETE sr,s
 				FROM src_relation AS sr LEFT JOIN src AS s ON sr.src_id = s.src_id
-				WHERE sr.relation_id = :relation_id && sr.type = 2';
-				
-		$res = Db::query( $sql, ['relation_id' => input('task_id')] );
+				WHERE sr.relation_id in('. $task_ids .') && sr.type = 2';
+		$res = Db::query( $sql );
 		return $res;
 	}
 	

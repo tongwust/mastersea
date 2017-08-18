@@ -947,6 +947,138 @@ class UserInfo extends Controller
 //  	dump($ret);
     	return json_encode( $ret);
     }
+    public function get_my_upload_srcs(){
+    	$ret = [
+    		'r'	=> 0,
+    		'msg' => '查询成功',
+    		'tasks' => [],
+    	];
+    	$encrypt = new Encrypt;
+    	if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+    	if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
+//		$user_id = input('user_id');
+    	$type = input('type');
+    	$from = empty(input('from'))?0:intval(input('from'));
+    	$page_size = empty(input('page_size'))?15:intval(input('page_size'));
+    	if( $type != 1 && $type != 5 && $type != 6 && $type != 7){
+    		$ret['r'] = -1;
+    		$ret['msg'] = 'type 参数不符';
+    		return json_encode($ret);
+    		exit;
+    	}
+    	$project_task_user = model('ProjectTaskUser');
+    	$src_relation = model('SrcRelation');
+    	
+    	$res = $project_task_user -> getMyUploadSrcs( $user_id, $type, $from, $page_size);
+    	$project_ids_arr = array_column( $res, 'project_id');
+    	$project_ids_arr = array_unique( $project_ids_arr);
+    	$project_ids_str = implode(',', $project_ids_arr);
+    	$plist = ($project_ids_str == '')?[]:$src_relation -> get_srcs_by_relation_ids( $project_ids_str, 1);
+    	foreach($res as &$v){
+    		foreach($plist as $p){
+    			if( $v['project_id'] == $p['relation_id']){
+    				$pos = strrpos($p['access_url'], '.');
+					if( $pos > 0){
+						$v['paccess_url'] = substr( $p['access_url'], 0, $pos).'_339x387'.substr( $p['access_url'], $pos);
+					}
+    			}
+    		}
+    		$v['origin_taccess_url'] = $v['taccess_url'];
+    		if( $type == 1){
+    			$pos = strrpos($v['taccess_url'], '.');
+				if( $pos > 0){
+					$v['taccess_url'] = substr( $v['taccess_url'], 0, $pos).'_865x579'.substr( $v['taccess_url'], $pos);
+				}
+    		}else if( $type == 6){
+    			$pos = strrpos($v['taccess_url'], '.');
+				if( $pos > 0){
+					$v['taccess_url'] = substr( $v['taccess_url'], 0, $pos).'.pdf';
+				}
+    		}
+    		$v['create_time'] = date('Y年m月d日',strtotime($v['create_time']));
+    	}
+    	$ret['tasks'] = $res;
+    	return json_encode( $ret);
+    }
+    public function search_my_upload_by_filename(){
+    	$ret = [
+    		'r'	=> 0,
+    		'msg' => '查询成功',
+    		'tasks' => [],
+    	];
+    	$encrypt = new Encrypt;
+    	if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
+//		$user_id = input('user_id');
+    	$filename = input('filename');
+    	$sortord = input('sortord');
+    	$from = empty(input('from'))?0:intval(input('from'));
+    	$page_size = empty(input('page_size'))?15:intval(input('page_size'));
+    	if( mb_strlen($filename) == 0){
+    		$ret['r'] = -1;
+    		$ret['msg'] = 'filename参数不符要求';
+    		return json_encode( $filename);
+    		exit;
+    	}
+    	$project_task_user = model('ProjectTaskUser');
+    	$src_relation = model('SrcRelation');
+    	$res = $project_task_user -> searchMyUploadByFilename($user_id, $filename, $sortord, $from, $page_size);
+    	$project_ids_arr = array_column( $res, 'project_id');
+    	$project_ids_arr = array_unique( $project_ids_arr);
+    	$project_ids_str = implode(',', $project_ids_arr);
+    	$plist = ($project_ids_str == '')?[]:$src_relation -> get_srcs_by_relation_ids( $project_ids_str, 1);
+    	
+    	foreach($res as &$v){
+    		foreach($plist as $p){
+    			if( $v['project_id'] == $p['relation_id']){
+    				$pos = strrpos($p['access_url'], '.');
+					if( $pos > 0){
+						$v['paccess_url'] = substr( $p['access_url'], 0, $pos).'_339x387'.substr( $p['access_url'], $pos);
+					}
+    			}
+    		}
+    		$v['origin_taccess_url'] = $v['taccess_url'];
+    		if( $v['type'] == 1){
+    			$pos = strrpos($v['taccess_url'], '.');
+				if( $pos > 0){
+					$v['taccess_url'] = substr( $v['taccess_url'], 0, $pos).'_865x579'.substr( $v['taccess_url'], $pos);
+				}
+    		}else if($v['type'] == 6){
+    			$pos = strrpos($v['taccess_url'], '.');
+				if( $pos > 0){
+					$v['taccess_url'] = substr( $v['taccess_url'], 0, $pos).'.pdf';
+				}
+    		}
+    		//2017-07-04 16:12:35
+    		$v['create_time'] = date('Y年m月d日',strtotime($v['create_time']));
+    	}
+    	$ret['tasks'] = $res;
+    	return json_encode( $ret);
+    }
     
 }
 ?>
