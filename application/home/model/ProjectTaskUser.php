@@ -7,15 +7,23 @@ class ProjectTaskUser extends Model{
 	
 	protected $table = 'project_task_user';
 	public function getPartTaskList( $project_ids_str){
-		$from  = (input('from'))?intval(input('from')):0;
-		$page_size = (input('page_size'))?intval(input('page_size')):10;
 		
 		$sql = 'SELECT ptu.project_id,ptu.task_id,t.title,s.src_id,s.type src_type,s.access_url origin_access_url
-				FROM project_task_user AS ptu LEFT JOIN task AS t ON ptu.task_id = t.task_id
-											  LEFT JOIN src_relation AS sr ON t.task_id = sr.relation_id && sr.type = 2
-											  LEFT JOIN src AS s ON sr.src_id = s.src_id
+				FROM project_task_user AS ptu JOIN task AS t ON ptu.task_id = t.task_id
+											  JOIN src_relation AS sr ON t.task_id = sr.relation_id && sr.type = 2
+											  JOIN src AS s ON sr.src_id = s.src_id && s.type = 1
 				WHERE ptu.project_id in ('.$project_ids_str.')';
 				
+		$res = Db::query($sql);
+		return $res;
+	}
+	public function getPartTaskImgList( $project_ids_str){
+		
+		$sql = 'SELECT ptu.project_id,ptu.task_id,s.access_url taccess_url
+				FROM project_task_user ptu JOIN task t ON ptu.task_id = t.task_id
+										   JOIN src_relation sr ON t.task_id = sr.relation_id && sr.type = 2
+										   JOIN src s ON sr.src_id = s.src_id && s.type = 1
+				WHERE ptu.project_id in ('.$project_ids_str.')';
 		$res = Db::query($sql);
 		return $res;
 	}

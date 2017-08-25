@@ -109,9 +109,9 @@ class UserProjectTag extends Model{
 		$project_id = input('project_id');
 		$user_id = input('user_id');
 		
-		$sql = 'SELECT upt.tag_id,ti.name AS tag_name,upt.user_type
-				FROM user_project_tag AS upt LEFT JOIN tag_info AS ti ON (upt.tag_id = ti.tag_id || upt.tag_id = 0)
-				WHERE upt.user_id = :user_id && upt.project_id = :project_id';
+		$sql = 'SELECT user_type
+				FROM user_project_tag
+				WHERE user_id = :user_id && project_id = :project_id';
 		$res = Db::query( $sql, ['user_id' => $user_id,'project_id' => $project_id]);
 		
 		return $res;
@@ -132,12 +132,14 @@ class UserProjectTag extends Model{
 	public function getMemberInfoByProjectId(){
 		$project_id = input('project_id');
 		
-		$sql = 'SELECT upt.user_id,upt.tag_id,upt.user_type,ti.name AS tag_name,u.name AS username,s.src_id,s.src_name,s.path,s.access_url
+		$sql = 'SELECT upt.user_id,upt.user_type,ut.tag_id,ti.name AS tag_name,u.name AS username,s.src_id,s.src_name,s.path,s.access_url
 				FROM user_project_tag AS upt LEFT JOIN user AS u ON upt.user_id = u.user_id
 					LEFT JOIN src_relation AS sr ON sr.type = 3 && u.user_id = sr.relation_id
 					LEFT JOIN src AS s ON sr.src_id = s.src_id && s.type = 2
-					LEFT JOIN tag_info AS ti ON upt.tag_id = ti.tag_id
-				WHERE upt.project_id = :project_id
+					LEFT JOIN user_tag ut ON upt.user_id = ut.user_id
+					LEFT JOIN tag t ON ut.tag_id = t.tag_id
+					LEFT JOIN tag_info AS ti ON t.tag_id = ti.tag_id
+				WHERE upt.project_id = :project_id && t.themeid = 10
 				ORDER BY upt.create_time DESC';
 		$res = Db::query( $sql, ['project_id'=>$project_id] );
 		return $res;
@@ -194,6 +196,17 @@ class UserProjectTag extends Model{
 					GROUP BY user_id,project_id';
 		$res = Db::query( $sql );
 		
+		return $res;
+	}
+	public function get_project_members_info($project_ids_str){
+		
+		$sql = 'SELECT upt.project_id,upt.user_id,u.name username,s.access_url as head_access_url
+				FROM user_project_tag upt LEFT JOIN user u ON upt.user_id = u.user_id && u.status = 1
+										  LEFT JOIN src_relation sr ON u.user_id = sr.relation_id && sr.type = 3
+										  LEFT JOIN src s ON sr.src_id = s.src_id && s.type = 2
+				WHERE upt.project_id in ('.$project_ids_str.')';
+		
+		$res = Db::query( $sql);
 		return $res;
 	}
 	public function getPartInfoByProjectId( $project_id ){
@@ -292,6 +305,21 @@ class UserProjectTag extends Model{
 					LIMIT '.$from.','.$page_size;
 					
 		$res = Db::query($sql, ['user_id'=>$user_id,'self_id'=>$user_id]);
+		
+		return $res;
+	}
+	
+	public function GetMyProjectTimeList( $user_id, $from, $page_size){
+		$sql = 'SELECT upt.project_id,p.name project_name,p.en_name project_en_name,p.create_time,p.project_start_time,p.project_end_time,p.praise_num,p.collect_num,ti.name address,s.access_url paccess_url
+				FROM user_project_tag AS upt INNER JOIN project AS p ON upt.project_id = p.project_id && p.status = 0
+											 LEFT JOIN project_tag AS pt ON p.project_id = pt.project_id
+											 LEFT JOIN tag AS t ON pt.tag_id = t.tag_id && t.themeid = 14
+											 LEFT JOIN tag_info AS ti ON t.tag_id = ti.tag_id
+											 LEFT JOIN src_relation sr ON sr.relation_id = upt.project_id && sr.type = 1
+											 LEFT JOIN src s ON s.src_id = sr.src_id && s.type = 3
+				WHERE upt.user_id = :user_id ORDER BY p.project_start_time DESC,p.create_time DESC LIMIT '.$from.','.$page_size;		
+		
+		$res = Db::query( $sql,['user_id' => $user_id]);
 		
 		return $res;
 	}

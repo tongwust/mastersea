@@ -27,33 +27,24 @@ class UserTag extends Model{
 		return $res;
 	}
 	
-	public function delete_user_tag($user_id, $themeid, $level){
-		$user_id = input('user_id');
+	public function delete_user_tag($user_id, $themeid){
+		
 		$sql = 'DELETE ut 
-				FROM user_tag AS ut INNER JOIN tag AS t ON ut.tag_id = t.tag_id
-				WHERE ut.user_id = :user_id && t.themeid = :themeid && t.level = :level';
-		$res = Db::query($sql , ['user_id'=> $user_id, 'themeid' => $themeid, 'level' => $level]);
+				FROM user_tag AS ut 
+						INNER JOIN tag AS t ON ut.tag_id = t.tag_id
+				WHERE ut.user_id = :user_id && t.themeid = :themeid';
+		$res = Db::query($sql , ['user_id'=> $user_id, 'themeid' => $themeid]);
 		
 		return $res;
 	}
 	
-	public function get_tag_by_userid($user_id, $themeid, $level){
-//		$user_id = input('user_id');
-		if($themeid != 14){
-			$sql = 'SELECT ti.tag_id,ti.name as tag_name
-				FROM user_tag AS ut INNER JOIN tag AS t ON ut.tag_id = t.tag_id && t.themeid = :themeid && level = :level
+	public function get_tag_by_userid($user_id, $themeid){
+		$sql = 'SELECT ti.tag_id,ti.name as tag_name
+				FROM user_tag AS ut INNER JOIN tag AS t ON ut.tag_id = t.tag_id && t.themeid = '.$themeid.' 
 									LEFT JOIN tag_info AS ti ON t.tag_id = ti.tag_id
-				WHERE ut.user_id = :user_id';
-			$arr = ['user_id' => $user_id, 'themeid' => $themeid, 'level' => $level];
-		}else{
-			$sql = 'SELECT ti.tag_id,ti.name as tag_name
-				FROM user_tag AS ut INNER JOIN tag AS t ON ut.tag_id = t.tag_id && t.themeid = :themeid
-									LEFT JOIN tag_info AS ti ON t.tag_id = ti.tag_id
-				WHERE ut.user_id = :user_id';
-			$arr = ['user_id' => $user_id, 'themeid' => $themeid];
-		}
-		$res = Db::query($sql , $arr);
+				WHERE ut.user_id = '.$user_id;
 		
+		$res = Db::query( $sql);
 		return $res;
 	}
 	public function hotTags( $themeid, $page_size){

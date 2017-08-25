@@ -86,6 +86,8 @@ class UserInfo extends Controller
     			$v['user_access_url'] = $users[ $v['project_id'] ]['access_url'];
     			$pos = strrpos($v['project_origin_access_url'], '.');
     			$v['project_access_url'] = ( $pos > 0)?substr( $v['project_origin_access_url'], 0, $pos).'_339x387'.substr( $v['project_origin_access_url'], $pos):'';
+    			$v['project_start_time'] = (strtotime($v['project_start_time']) > 0)?$v['project_start_time']:'';
+				$v['project_end_time'] = (strtotime($v['project_end_time']) > 0)?$v['project_end_time']:'';
     		}else{
     			unset( $res[$k] );
     		}
@@ -148,6 +150,8 @@ class UserInfo extends Controller
     			$v['user_access_url'] = $users[ $v['project_id'] ]['access_url'];
     			$pos = strrpos($v['project_origin_access_url'], '.');
     			$v['project_access_url'] = ( $pos > 0)?substr( $v['project_origin_access_url'], 0, $pos).'_339x387'.substr( $v['project_origin_access_url'], $pos):'';
+    			$v['project_start_time'] = (strtotime($v['project_start_time']) > 0)?$v['project_start_time']:'';
+				$v['project_end_time'] = (strtotime($v['project_end_time']) > 0)?$v['project_end_time']:'';
     		}else{
     			unset( $res[$k] );
     		}
@@ -416,6 +420,8 @@ class UserInfo extends Controller
 					$v['access_url'] = $u['access_url'];
 				}
 			}
+			$v['project_start_time'] = (strtotime($v['project_start_time']) > 0)?$v['project_start_time']:'';
+			$v['project_end_time'] = (strtotime($v['project_end_time']) > 0)?$v['project_end_time']:'';
     	}
     	$ret['pinfo'] = $res;
 //  	dump($ret );
@@ -562,6 +568,8 @@ class UserInfo extends Controller
     				$v['patten_num'] = $v['patten_num'] + 1;
     			}
     		}
+    		$v['project_start_time'] = (strtotime($v['project_start_time']) > 0)?$v['project_start_time']:'';
+    		$v['project_end_time'] = (strtotime($v['project_end_time']) > 0)?$v['project_end_time']:'';
     	}
 //  	dump($res);
     	$ret['pinfo'] = $res;
@@ -625,6 +633,8 @@ class UserInfo extends Controller
     		}
     		$pos = strrpos($v['project_origin_access_url'], '.');
 			$v['project_access_url'] = ( $pos > 0)?substr( $v['project_origin_access_url'], 0, $pos).'_339x387'.substr( $v['project_origin_access_url'], $pos):'';
+			$v['project_start_time'] = (strtotime($v['project_start_time']) > 0)?$v['project_start_time']:'';
+			$v['project_end_time'] = (strtotime($v['project_end_time']) > 0)?$v['project_end_time']:'';
     	}
 //  	dump($res);
     	$ret['pinfo'] = $res;
@@ -716,11 +726,11 @@ class UserInfo extends Controller
 			$me_id = session('userinfo')['user_id'];
 		}
     	if( $user_id > 0 ){
-    		$position = $user_tag->get_tag_by_userid($user_id, 10, 3);
-    		$skill = $user_tag->get_tag_by_userid($user_id, 11, 2);
-    		$concern = $user_tag->get_tag_by_userid($user_id, 9, 2);
-    		$language = $user_tag->get_tag_by_userid($user_id, 13, 2);
-    		$address = $user_tag -> get_tag_by_userid($user_id, 14, 4);
+    		$position = $user_tag->get_tag_by_userid($user_id, 10);//user_id themeid
+    		$skill = $user_tag->get_tag_by_userid($user_id, 11);
+    		$concern = $user_tag->get_tag_by_userid($user_id, 9);
+    		$language = $user_tag->get_tag_by_userid($user_id, 13);
+    		$address = $user_tag -> get_tag_by_userid($user_id, 14);
     		$result = $user_info->get_user_detail_by_id( $user_id);
     		$partners_num = $user_project_tag -> getPartnersNumByUserId();
     		$parr = [];
@@ -823,7 +833,8 @@ class UserInfo extends Controller
     			if(count($contact) > 0){
     				$res = $user_contact->saveAll( $contact);
     			}
-    			$user_tag -> delete_user_tag($user_id, 10, 3);//del position
+    			$user_tag -> delete_user_tag($user_id, 10);//del position(参数 user_id,themeid)
+//  			$user_tag -> delete_user_tag($user_id, 534);//del other position
     			if( count( $position ) > 0 ){
     				$position_list = [];
 					for($i = 0; $i < count($position); $i++){
@@ -840,8 +851,8 @@ class UserInfo extends Controller
 						$user_tag -> saveAll( $position_list );
 					}
     			}
-    			$user_tag -> delete_user_tag($user_id, 14, 3);//del address province
-    			$user_tag -> delete_user_tag($user_id, 14, 4);//del address city
+    			$user_tag -> delete_user_tag($user_id, 14);//del address province
+    			$user_tag -> delete_user_tag($user_id, 14);//del address city
     			if( count( $address ) > 0){
     				$address_list = [];
     				for($i = 0; $i < count($address); $i++){
@@ -853,14 +864,14 @@ class UserInfo extends Controller
 						$user_tag -> saveAll( $address_list );
 					}
     			}
-    			$user_tag -> delete_user_tag($user_id, 11, 2);//del skill
+    			$user_tag -> delete_user_tag($user_id, 11);//del skill
     			if( count( $skill ) > 0 ){
     				$skill_list = [];
 					for($i = 0; $i < count($skill); $i++){
 						if( $skill[$i]['tag_id'] ){
 							array_push( $skill_list, ['user_id' => $user_id, 'tag_id' => $skill[$i]['tag_id'] ] );
 						}else if( !$skill[$i]['tag_id'] && $skill[$i]['name'] ){
-							$tag_res = $tag -> tag_add2( 30, $skill[$i]['name'], '', 11, 2);
+							$tag_res = $tag -> tag_add2( 534, $skill[$i]['name'], '', 11, 2);
 							if( $tag_res['r'] == 0 && $tag_res['tag_id'] > 0){
 								array_push( $skill_list, ['user_id' => $user_id, 'tag_id' => $tag_res['tag_id'] ] );
 							}
@@ -870,7 +881,7 @@ class UserInfo extends Controller
 						$user_tag -> saveAll( $skill_list );
 					}
     			}
-    			$user_tag -> delete_user_tag($user_id, 13, 2);//del language
+    			$user_tag -> delete_user_tag($user_id, 13);//del language
     			if( count( $language ) > 0){
     				$language_list = [];
     				for($i = 0; $i < count($language); $i++){
@@ -882,7 +893,7 @@ class UserInfo extends Controller
 						$user_tag -> saveAll( $language_list );
 					}
     			}
-    			$user_tag -> delete_user_tag($user_id, 9, 2);//del concern
+    			$user_tag -> delete_user_tag($user_id, 9);//del concern
     			if( count($concern) > 0){
     				$concern_list = [];
     				for($i = 0; $i < count($concern); $i++){
@@ -1079,6 +1090,80 @@ class UserInfo extends Controller
     	$ret['tasks'] = $res;
     	return json_encode( $ret);
     }
+    public function get_my_project_time_list(){
+    	$ret = [
+    		'r'	=> 0,
+    		'msg' => '查询成功',
+    		'plist' => [],
+    	];
+    	$encrypt = new Encrypt;
+    	if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode( $ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
+//		$user_id = input('user_id');
+		$from = empty(input('from'))?0:intval(input('from'));
+		$page_size = empty(input('page_size'))?5:intval(input('page_size'));
+    	$user_project_tag = model('UserProjectTag');
+    	$project_task_user = model('ProjectTaskUser');
+    	$user_tag = model('UserTag');
+    	
+    	$res = $user_project_tag -> GetMyProjectTimeList( $user_id, $from, $page_size);
+    	$project_ids_str = implode(',', array_column($res,'project_id') );
+    	$mem = ($project_ids_str == '')?[]:$user_project_tag -> get_project_members_info($project_ids_str);
+    	$task = ($project_ids_str == '')?[]:$project_task_user -> getPartTaskImgList( $project_ids_str);
+    	$position = $user_tag -> get_tag_by_userid($user_id, 10);
+    	foreach( $res as &$v){
+    		if( $v['project_start_time'] != '0000-00-00'){
+    			$start_time = strtotime($v['project_start_time']);
+    			$end_time = ($v['project_end_time'] != '0000-00-00')?strtotime($v['project_end_time']):0;
+    			$v['year'] = date('Y', $start_time);
+    			if( $end_time > 0 && $v['year'] != date('Y',$end_time ) ){
+    				$v['monthday'] = date('n月j日', $start_time) .' - '. date('Y年n月j日',$end_time);
+    			}else if( $end_time > 0 && $v['year'] == date('Y',$end_time )){
+    				$v['monthday'] = date('n月j日', $start_time) .' - '. date('n月j日',$end_time);
+    			}else{
+    				$v['monthday'] = date('n月j日', $start_time);
+    			}
+    		}else{
+    			$start_time = strtotime($v['create_time']);
+    			$v['year'] = date('Y', $start_time);
+    			$v['monthday'] = date('n月j日', $start_time);
+    		}
+    		unset($v['project_start_time']);
+    		unset($v['project_end_time']);
+    		unset($v['create_time']);
+    		$v['position'] = (count($position) > 0)?$position[0]['tag_name']:'';
+    		$v['mem'] = [];
+    		foreach( $mem as $m){
+    			if( $v['project_id'] == $m['project_id']){
+    				unset($m['project_id']);
+    				array_push($v['mem'],$m);
+    			}
+    		}
+    		$v['task'] = [];
+    		foreach( $task as $t){
+    			if( $v['project_id'] == $t['project_id']){
+    				$pos = strrpos( $t['taccess_url'],'.');
+    				$taccess_url = ($pos > 0)?substr($t['taccess_url'],0,$pos).'_865x579'.substr($t['taccess_url'],$pos):$t['taccess_url'];
+    				array_push( $v['task'], ['task_id'=>$t['task_id'],'taccess_url'=>$taccess_url]);
+    			}
+    		}
+    	}
+    	$ret['plist'] = $res;dump($ret);
+    	return json_encode($ret);
+    }
+    
     
 }
 ?>

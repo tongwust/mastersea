@@ -242,6 +242,7 @@ class Tag extends Controller{
 			'tag_id' => '',
 		];
 		if( $pid > 0 && $themeid > 0){
+			$tag = model('Tag');
 			$res = $tag -> addTag( $pid, $name, $short_name, $themeid, $type);
 			if(!(count($res) > 0 && $res[0][0]['result'] == 1000)){
 				$ret['r'] = -2;

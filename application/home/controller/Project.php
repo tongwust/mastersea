@@ -649,8 +649,12 @@ class Project extends Controller{
 		$address = $project_tag->get_tag_by_project_id();
 //		$atten_num = $project_atten -> getProjectAttenNumByProjectId();
 		$collect_num = $collect -> getProjectAttenNum( $project_id, $user_id, 1);
+		if( count($projectInfo) > 0 ){
+			$projectInfo[0]['project_start_time'] = (strtotime($projectInfo[0]['project_start_time']) > 0)?$projectInfo[0]['project_start_time']:'';
+			$projectInfo[0]['project_end_time'] = (strtotime($projectInfo[0]['project_end_time']) > 0)?$projectInfo[0]['project_end_time']:'';
+			$ret['project'] = array_merge( $ret['project'], $projectInfo[0]);
+		}
 		
-		$ret['project'] = (count($projectInfo) > 0)?array_merge( $ret['project'], $projectInfo[0]):[];
 		$ret['project']['tags'] = (count($tags)> 0)?$tags:[];
 		$ret['project']['srcs'] = (count($srcs)> 0)?$srcs[0]:[];
 		$ret['project']['address'] = (count($address) > 0)?$address[0]:[];

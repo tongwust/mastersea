@@ -300,7 +300,6 @@ class Index extends Controller
 		$position = json_decode(trim(input('position')), true);
 		$skill = json_decode(trim(input('skill')), true);
 		$concern = json_decode(trim(input('concern')), true);
-		
 		if($name == '' || $pwd == '' || $repwd == '' || $mobile == ''){
 			$ret['r'] = -5;
 			$ret['msg'] = '用户名 密码或邮箱不能为空！';
@@ -341,10 +340,8 @@ class Index extends Controller
 		$user_info = model('UserInfo');
 		$user_tag = model('UserTag');
 		$tag = new Tag;
-		
 //		$user_contact->contact = $mobile;
 //		$user_contact->type = 1;
-		
 		Db::startTrans();
 		try{
 			$user->save();
@@ -377,7 +374,7 @@ class Index extends Controller
 					if( $skill[$i]['tag_id']){
 						array_push( $skill_list, ['user_id' => $user->user_id, 'tag_id' => $skill[$i]['tag_id'] ]);
 					}else if( !$skill[$i]['tag_id'] && $skill[$i]['name']){
-						$tag_res = $tag -> tag_add2( 30, $skill[$i]['name'], '', 11, 2);//30 other skill
+						$tag_res = $tag -> tag_add2( 534, $skill[$i]['name'], '', 11, 2);//30 other skill
 						if( $tag_res['r'] == 0 && $tag_res['tag_id'] > 0){
 							array_push( $skill_list, ['user_id' => $user->user_id, 'tag_id' => $tag_res['tag_id'] ] );
 						}
@@ -403,14 +400,6 @@ class Index extends Controller
 					$user_tag -> saveAll( $concern_list);
 				}
 			}
-//			$interest_arr = explode(',', $interest_ids);
-//			if($interest_ids != '' && count($interest_arr) > 0){
-//				$interest_list = [];
-//				for($i = 0; $i < count($interest_arr); $i++){
-//					array_push($interest_list, ['user_id'=>$user->user_id,"tag_id"=>$interest_arr[$i]]);
-//				}
-//				$user_tag->save($interest_list);
-//			}
 			Db::commit();
 			$ret['r'] = 0;
 			$ret['msg'] = '添加成功！';
@@ -418,6 +407,7 @@ class Index extends Controller
 			Db::rollback();
 			$ret['r'] = -6;
 			$ret['msg'] = '数据库错误!'.$e;
+			return json_encode($ret);
 			exit;
 		}
 		$session_config = [
@@ -432,9 +422,6 @@ class Index extends Controller
 		session('userinfo.user_id',$user->user_id);
 		session('userinfo.name',$name);
 		session('userinfo.sex', 1);//default
-//		session('userinfo.path', '');
-//		session('userinfo.resource_path', '');
-//		session('userinfo.access_url', '');
 		$ret['user_id'] = $user -> user_id;
 		$ret['name'] = $name;
 		
@@ -456,16 +443,24 @@ class Index extends Controller
 			return json_encode($ret);
 			exit;
 		}
-		$user = model('User');
+		
 		$name = trim(input('name'));
 		$pwd = trim(input('pwd'));
 		$is_rember = input('is_rember');
+		
 		if($name == '' || $pwd == ''){
 			$ret['msg'] = '用户名或密码不能为空';
 			return json_encode($ret);
 			exit;
 		}
-		$res = $user->get_user_info_by_name_pwd();
+		$user = model('User');
+//		$pattern_mobile = '/^1[3|4|5|8][0-9]\d{8}$/';
+//		if( preg_match($pattern_mobile, $name) ){
+		$res = $user -> get_user_info_by_name_pwd( $name, md5($pwd));
+		$res = (count( $res) > 0)?$res:$user -> get_user_info_by_moblie_pwd($name, md5($pwd));
+//		}else{
+//		$res = $user -> get_user_info_by_name_pwd( $name, md5($pwd));
+//		}
 		if(count($res) > 0){
 			$ret['r'] = 0;
 			$ret['msg'] = '登陆成功';
@@ -507,7 +502,7 @@ class Index extends Controller
 
 		$ret = [
 			'r' => 0,
-			'msg' => '',
+			'msg' => 'out success',
 		];
 		$encrypt = new Encrypt;
 		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
@@ -518,6 +513,117 @@ class Index extends Controller
 		}
 //		cache(session('userinfo.user_id'), NULL);
 		session('userinfo', NULL);
+		return json_encode($ret);
+	}
+	public function change_user_pass(){
+		$ret = [
+			'r' => 0,
+			'msg' => '密码修改成功',
+		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		$pwd = trim(input('pwd'));
+		$repwd = trim(input('repwd'));
+		$oldpwd = trim(input('oldpwd'));
+		if( $pwd == '' || $pwd != $repwd){
+			$ret['r'] = -1;
+			$ret['msg'] = '密码不能为空且两次输入一致';
+			return json_encode($ret);
+			exit;
+		}
+		if( !session('userinfo') ){
+			$ret['r'] = -100;
+			$ret['msg'] = '未登录';
+			return json_encode($ret);
+			exit;
+		}else{
+			$user_id = session('userinfo')['user_id'];
+		}
+//		$user_id = input('user_id');
+		$user = model('User');
+		$res = $user -> checkPwdByUserid( $user_id, md5($oldpwd));
+		if( count( $res) == 0 ){
+			$ret['r'] = -2;
+			$ret['msg'] = '输入原密码不正确';
+			return json_encode( $ret);
+			exit;
+		}
+		$user -> changeUserPass( $user_id, md5($pwd));
+		return json_encode( $ret);
+	}
+	public function change_user_pass_bycode(){
+		$ret = [
+			'r' => 0,
+			'msg' => '密码修改成功',
+		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		$pwd = input('pwd');
+		$repwd = input('repwd');
+		if( $pwd == '' || $pwd != $repwd){
+			$ret['r'] = -2;
+			$ret['msg'] = '密码不能为空或两次输入不一致';
+			return json_encode($ret);
+			exit;
+		}
+		$mobile = input('mobile');
+		$user_id = input('user_id');
+		$username = input('username');
+		$enc_token = md5( substr(md5(input('user_id')),-8).substr(md5(input('username')),0,8).substr(md5(input('mobile')),-8) );
+		if( $user_id > 0 && strlen( $username) > 0 && strlen( $mobile) > 0 && $enc_token == input('enc_token')){
+			$user = model('User');
+			$user -> changeUserPass( $user_id, md5($pwd));
+		}else{
+			$ret['r'] = -1;
+			$ret['msg'] = '校验失败';
+		}
+		return json_encode($ret);
+	}
+	public function check_username_mobile(){
+		$ret = [
+			'r' => 0,
+			'msg' => '验证信息存在',
+			'mobile' => '',
+			'user_id' => '',
+			'username' => '',
+			'enc_token' => '',
+		];
+		$encrypt = new Encrypt;
+		if( $encrypt -> token_decode(input('token')) != Encrypt::ENCRYPT_STR ){
+			$ret['r'] = -10;
+			$ret['msg'] = '接口验证失败';
+			return json_encode($ret);
+			exit;
+		}
+		$unm = input('unm');
+		if( $unm == ''){
+			$ret['r'] = -1;
+			$ret['msg'] = 'unm不能为空';
+			return json_encode($ret);
+			exit;
+		}
+		$user = model('User');
+		$res = $user -> checkUsernameMobile( $unm);
+		if( count( $res) > 0){
+			$ret['mobile'] = $res[0]['mobile'];
+			$ret['user_id'] = $res[0]['user_id'];
+			$ret['username'] = $res[0]['username'];
+			$ret['enc_token'] = md5( substr(md5($ret['user_id']),-8).substr(md5($ret['username']),0,8).substr(md5($ret['mobile']),-8) );
+		}else{
+			$ret['r'] = -2;
+			$ret['msg'] = '用户名或手机号不存在';
+		}
+//		dump($ret);
 		return json_encode($ret);
 	}
 	
@@ -576,7 +682,7 @@ class Index extends Controller
 		$uinfo = $user_info -> get_user_detail_by_id( $user_id);
 		$username = isset($uinfo[0]['name'])?$uinfo[0]['name']:'';
 //		dump($uinfo);
-		$tags = $user_tag -> get_tag_by_userid($user_id, 10, 3);
+		$tags = $user_tag -> get_tag_by_userid($user_id, 10);
 //		dump($tags);
 		
 		$str = '<style>
